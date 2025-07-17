@@ -129,6 +129,22 @@ Stores shared info: `id`, `email`, `password`, `name`, `role`, `bio`, `profile_i
 
 ---
 
+## 🔐 Authentication System
+
+The authentication system provides secure registration, login, and role-based access for mentors and mentees. Key features include:
+
+- **JWT-based authentication** for stateless session management.
+- **Role-based access control** (mentor/mentee) enforced via JWT payload and middleware.
+- **Password security**: bcrypt hashing and strong password validation (min 12 chars, upper/lowercase, number, symbol).
+- **Input validation**: Joi schemas with custom rules for password strength and XSS protection (e.g., script tag rejection in names).
+- **Rate limiting**: General and auth-specific rate limiting using `express-rate-limit`, disabled in test environment for reliability.
+- **Consistent error handling**: Standardized error codes/messages for validation, authentication, and JWT expiry.
+- **Comprehensive tests**: Registration, login, validation, JWT expiry, XSS, and edge cases.
+
+See [`docs/04-auth-system.md`](docs/04-auth-system.md) for a detailed writeup, including challenges faced and solutions.
+
+---
+
 ## 💡 Key Decisions & Tradeoffs
 
 | Question                             | Decision                              | Why                                                          |
@@ -144,9 +160,31 @@ Stores shared info: `id`, `email`, `password`, `name`, `role`, `bio`, `profile_i
 
 ## 🧪 Testing Strategy
 
-* Unit tests for all core services (booking, auth, etc.)
-* Integration tests for booking flow
-* Simulated payment logic (mocked)
+This project includes comprehensive unit and integration tests for authentication, JWT, password utilities, and validation logic.
+
+### Running Tests
+
+1. Ensure your test database is configured in your `.env` file (see `backend/tests/setup.js` for details).
+2. From the `backend/` directory, run:
+
+```bash
+npm install
+npm test
+```
+
+### Test Coverage
+- **Authentication**: Registration, login, duplicate email, and invalid credentials.
+- **JWT Utility**: Token signing, verification, and error handling.
+- **Password Utility**: Hashing, verification, and negative cases.
+- **Validation Utility**: Email validation (positive and negative cases).
+
+### Adding More Tests
+- Place new test files in `backend/tests/`.
+- Use the provided setup/cleanup utilities for database isolation.
+
+### Interpreting Results
+- All tests should pass. Failures will be reported with details.
+- For database-related errors, check your test DB connection and migrations.
 
 ---
 
@@ -172,14 +210,6 @@ npm run dev
 
 ---
 
-## 🔐 Authentication Flow
-
-* JWT-based
-* bcrypt for hashing
-* Middleware for protected routes (`/bookings`, `/availability`)
-
----
-
 ## 📌 Logging & Error Handling
 
 * API logs key actions: booking requests, rejections, reschedule proposals
@@ -197,3 +227,19 @@ Some potential V2 features:
 * Notifications
 * Stripe integration for real payments
 * Group sessions
+
+---
+
+## Documentation
+
+- [00-overview.md](docs/00-overview.md): Project overview and goals
+- [01-planning.md](docs/01-planning.md): Planning and design decisions
+- [02-schema-design.md](docs/02-schema-design.md): Database schema
+- [03-project-setup.md](docs/03-project-setup.md): Project structure and setup
+- [04-auth-system.md](docs/04-auth-system.md): Authentication system (this step)
+
+---
+
+## License
+
+MIT
