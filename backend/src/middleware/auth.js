@@ -21,7 +21,7 @@ const authenticateToken = async (req, res, next) => {
       select: { 
         id: true, 
         email: true, 
-        userType: true,
+        role: true,
         name: true,
         createdAt: true
       }
@@ -53,12 +53,12 @@ const authenticateToken = async (req, res, next) => {
 
 const requireRole = (requiredRole) => {
   return (req, res, next) => {
-    if (req.user.userType !== requiredRole) {
+    if (req.user.role !== requiredRole) {
       return res.status(403).json({ 
         error: 'Insufficient permissions',
         code: 'INSUFFICIENT_PERMISSIONS',
         required: requiredRole,
-        current: req.user.userType
+        current: req.user.role
       });
     }
     next();
@@ -67,12 +67,12 @@ const requireRole = (requiredRole) => {
 
 const requireAnyRole = (allowedRoles) => {
   return (req, res, next) => {
-    if (!allowedRoles.includes(req.user.userType)) {
+    if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({ 
         error: 'Insufficient permissions',
         code: 'INSUFFICIENT_PERMISSIONS',
         allowed: allowedRoles,
-        current: req.user.userType
+        current: req.user.role
       });
     }
     next();

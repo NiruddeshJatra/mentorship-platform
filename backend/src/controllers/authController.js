@@ -7,6 +7,7 @@ const prisma = new PrismaClient();
 const register = async (req, res) => {
   try {
     const { email, password, name, userType } = req.body;
+    const role = userType; // Map userType to role for backward compatibility
 
     // Additional password strength validation
     const passwordValidation = validatePasswordStrength(password);
@@ -40,25 +41,25 @@ const register = async (req, res) => {
           email: email.toLowerCase(),
           password: hashedPassword,
           name,
-          userType
+          role // Use role instead of userType
         },
         select: {
           id: true,
           email: true,
           name: true,
-          userType: true,
+          role: true,
           createdAt: true
         }
       });
 
       // Create role-specific profile
-      if (userType === 'mentor') {
+      if (role === 'mentor') {
         await tx.mentor.create({
           data: {
             userId: newUser.id
           }
         });
-      } else if (userType === 'mentee') {
+      } else if (role === 'mentee') {
         await tx.mentee.create({
           data: {
             userId: newUser.id
@@ -72,7 +73,7 @@ const register = async (req, res) => {
     // Generate JWT token
     const token = generateToken({
       userId: user.id,
-      userType: user.userType
+      role: user.role
     });
 
     res.status(201).json({
@@ -127,7 +128,7 @@ const login = async (req, res) => {
     // Generate JWT token
     const token = generateToken({
       userId: user.id,
-      userType: user.userType
+      role: user.role
     });
 
     res.json({
@@ -136,7 +137,7 @@ const login = async (req, res) => {
         id: user.id,
         email: user.email,
         name: user.name,
-        userType: user.userType
+        role: user.role
       },
       token
     });
@@ -157,9 +158,9 @@ const getCurrentUser = async (req, res) => {
         id: true,
         email: true,
         name: true,
-        userType: true,
+        role: true,
         createdAt: true,
-        mentor: req.user.userType === 'mentor' ? {
+        mentor: req.user.role === 'mentor' ? {
           select: {
             company: true,
             experience: true,
@@ -168,7 +169,7 @@ const getCurrentUser = async (req, res) => {
             location: true
           }
         } : undefined,
-        mentee: req.user.userType === 'mentee' ? {
+        mentee: req.user.role === 'mentee' ? {
           select: {
             currentRole: true,
             learningGoals: true,
@@ -200,17 +201,17 @@ const updateProfile = async (req, res) => {
   try {
     const { name, mentor, mentee } = req.body;
     const userId = req.user.id;
-    const userType = req.user.userType;
+    const role = req.user.role;
 
     // Validate that user is updating correct profile type
-    if (userType === 'mentor' && mentee) {
+    if (role === 'mentor' && mentee) {
       return res.status(400).json({
         error: 'Cannot update mentee profile as mentor',
         code: 'INVALID_PROFILE_UPDATE'
       });
     }
 
-    if (userType === 'mentee' && mentor) {
+    if (role === 'mentee' && mentor) {
       return res.status(400).json({
         error: 'Cannot update mentor profile as mentee',
         code: 'INVALID_PROFILE_UPDATE'
@@ -230,12 +231,12 @@ const updateProfile = async (req, res) => {
       }
 
       // Update role-specific profile
-      if (userType === 'mentor' && mentor) {
+      if (role === 'mentor' && mentor) {
         await tx.mentor.update({
           where: { userId },
           data: mentor
         });
-      } else if (userType === 'mentee' && mentee) {
+      } else if (role === 'mentee' && mentee) {
         await tx.mentee.update({
           where: { userId },
           data: mentee
@@ -249,9 +250,9 @@ const updateProfile = async (req, res) => {
           id: true,
           email: true,
           name: true,
-          userType: true,
+          role: true,
           createdAt: true,
-          mentor: userType === 'mentor' ? {
+          mentor: role === 'mentor' ? {
             select: {
               company: true,
               experience: true,
@@ -260,7 +261,7 @@ const updateProfile = async (req, res) => {
               location: true
             }
           } : undefined,
-          mentee: userType === 'mentee' ? {
+          mentee: role === 'mentee' ? {
             select: {
               currentRole: true,
               learningGoals: true,
