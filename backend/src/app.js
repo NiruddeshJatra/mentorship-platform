@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const { connectDB, disconnectDB } = require('./config/database');
-const { errorHandler } = require('./middleware/errorHandler');
+const errorHandler = require('./middleware/errorHandler');
 const { requestLogger } = require('./middleware/logger');
 
 // Import routes
