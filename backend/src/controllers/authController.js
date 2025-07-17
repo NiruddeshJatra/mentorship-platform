@@ -284,9 +284,18 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
+// Logout controller
+const logout = (req, res) => {
+  // If using sessions (Passport), destroy session
+  if (req.logout) req.logout(() => {});
+  if (req.session) req.session.destroy(() => {});
+  res.json({ message: 'Logout successful' });
+};
+
 module.exports = {
   register,
   login,
   getCurrentUser,
-  updateProfile
+  updateProfile,
+  logout
 };
