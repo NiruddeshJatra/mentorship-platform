@@ -2,7 +2,7 @@ const { prisma } = require('../config/database');
 const { hashPassword, comparePassword, validatePasswordStrength } = require('../utils/password');
 const { generateToken } = require('../utils/jwt');
 
-const register = async (req, res) => {
+const register = async (req, res, next) => {
   try {
     const { email, password, name, userType } = req.body;
     const role = userType; // Map userType to role for backward compatibility
@@ -10,11 +10,11 @@ const register = async (req, res) => {
     // Additional password strength validation
     const passwordValidation = validatePasswordStrength(password);
     if (!passwordValidation.isValid) {
-      return res.status(400).json({
-        error: 'Password does not meet requirements',
-        code: 'WEAK_PASSWORD',
-        details: passwordValidation.errors
-      });
+      const error = new Error('Password does not meet requirements');
+      error.statusCode = 400;
+      error.code = 'WEAK_PASSWORD';
+      error.details = passwordValidation.errors;
+      return next(error);
     }
 
     // Check if user already exists
@@ -23,10 +23,10 @@ const register = async (req, res) => {
     });
 
     if (existingUser) {
-      return res.status(409).json({ 
-        error: 'User already exists',
-        code: 'USER_EXISTS'
-      });
+      const error = new Error('User already exists');
+      error.statusCode = 409;
+      error.code = 'USER_EXISTS';
+      return next(error);
     }
 
     // Hash password
@@ -84,20 +84,20 @@ const register = async (req, res) => {
     
     // Handle specific Prisma errors
     if (error.code === 'P2002') {
-      return res.status(409).json({
-        error: 'User already exists',
-        code: 'USER_EXISTS'
-      });
+      error.statusCode = 409;
+      error.code = 'USER_EXISTS';
+      error.message = 'User already exists';
+      return next(error);
     }
     
-    res.status(500).json({ 
-      error: 'Registration failed',
-      code: 'REGISTRATION_ERROR'
-    });
+    error.statusCode = 500;
+    error.code = 'REGISTRATION_ERROR';
+    error.message = 'Registration failed';
+    next(error);
   }
 };
 
-const login = async (req, res) => {
+const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -107,20 +107,20 @@ const login = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(401).json({ 
-        error: 'Invalid credentials',
-        code: 'INVALID_CREDENTIALS'
-      });
+      const error = new Error('Invalid credentials');
+      error.statusCode = 401;
+      error.code = 'INVALID_CREDENTIALS';
+      return next(error);
     }
 
     // Verify password
     const isValidPassword = await comparePassword(password, user.passwordHash);
 
     if (!isValidPassword) {
-      return res.status(401).json({ 
-        error: 'Invalid credentials',
-        code: 'INVALID_CREDENTIALS'
-      });
+      const error = new Error('Invalid credentials');
+      error.statusCode = 401;
+      error.code = 'INVALID_CREDENTIALS';
+      return next(error);
     }
 
     // Generate JWT token
@@ -141,14 +141,14 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ 
-      error: 'Login failed',
-      code: 'LOGIN_ERROR'
-    });
+    error.statusCode = 500;
+    error.code = 'LOGIN_ERROR';
+    error.message = 'Login failed';
+    next(error);
   }
 };
 
-const getCurrentUser = async (req, res) => {
+const getCurrentUser = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
@@ -179,23 +179,23 @@ const getCurrentUser = async (req, res) => {
     });
 
     if (!user) {
-      return res.status(404).json({
-        error: 'User not found',
-        code: 'USER_NOT_FOUND'
-      });
+      const error = new Error('User not found');
+      error.statusCode = 404;
+      error.code = 'USER_NOT_FOUND';
+      return next(error);
     }
 
     res.json({ user });
   } catch (error) {
     console.error('Get current user error:', error);
-    res.status(500).json({ 
-      error: 'Failed to get user data',
-      code: 'GET_USER_ERROR'
-    });
+    error.statusCode = 500;
+    error.code = 'GET_USER_ERROR';
+    error.message = 'Failed to get user data';
+    next(error);
   }
 };
 
-const updateProfile = async (req, res) => {
+const updateProfile = async (req, res, next) => {
   try {
     const { name, mentor, mentee } = req.body;
     const userId = req.user.id;
@@ -203,17 +203,17 @@ const updateProfile = async (req, res) => {
 
     // Validate that user is updating correct profile type
     if (role === 'mentor' && mentee) {
-      return res.status(400).json({
-        error: 'Cannot update mentee profile as mentor',
-        code: 'INVALID_PROFILE_UPDATE'
-      });
+      const error = new Error('Cannot update mentee profile as mentor');
+      error.statusCode = 400;
+      error.code = 'INVALID_PROFILE_UPDATE';
+      return next(error);
     }
 
     if (role === 'mentee' && mentor) {
-      return res.status(400).json({
-        error: 'Cannot update mentor profile as mentee',
-        code: 'INVALID_PROFILE_UPDATE'
-      });
+      const error = new Error('Cannot update mentor profile as mentee');
+      error.statusCode = 400;
+      error.code = 'INVALID_PROFILE_UPDATE';
+      return next(error);
     }
 
     const updatedUser = await prisma.$transaction(async (tx) => {
@@ -277,10 +277,10 @@ const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error('Update profile error:', error);
-    res.status(500).json({
-      error: 'Failed to update profile',
-      code: 'UPDATE_PROFILE_ERROR'
-    });
+    error.statusCode = 500;
+    error.code = 'UPDATE_PROFILE_ERROR';
+    error.message = 'Failed to update profile';
+    next(error);
   }
 };
 
