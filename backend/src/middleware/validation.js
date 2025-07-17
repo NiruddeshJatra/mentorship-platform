@@ -5,7 +5,7 @@ const validateRequest = (schema) => {
     if (error) {
       return res.status(400).json({
         error: 'Validation failed',
-        code: 'VALIDATION_ERROR',
+        code: error.details[0]?.context?.code || 'VALIDATION_ERROR',
         details: error.details.map(detail => ({
           field: detail.path.join('.'),
           message: detail.message,

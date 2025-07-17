@@ -1,16 +1,26 @@
 const Joi = require('joi');
+const { validatePasswordStrength } = require('./password');
 
 // Custom password validation
-const passwordValidation = Joi.string()
-  .min(12)
-  .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>])/)
-  .message('Password must be at least 12 characters with uppercase, lowercase, number, and symbol')
-  .required();
+const passwordValidation = Joi.string().required().custom((value, helpers) => {
+  const result = validatePasswordStrength(value);
+  if (!result.isValid) {
+    return helpers.error('any.custom', { message: result.errors.join('; '), code: 'WEAK_PASSWORD' });
+  }
+  return value;
+}, 'Custom password strength validation');
+
+const xssPattern = /<script.*?>.*?<\/script.*?>/i;
 
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   password: passwordValidation,
-  name: Joi.string().min(2).max(50).required(),
+  name: Joi.string().min(2).max(50).required().custom((value, helpers) => {
+    if (xssPattern.test(value)) {
+      return helpers.error('any.invalid', { message: 'Name contains forbidden script tags' });
+    }
+    return value;
+  }, 'XSS protection'),
   role: Joi.string().valid('mentor', 'mentee').required()
 });
 

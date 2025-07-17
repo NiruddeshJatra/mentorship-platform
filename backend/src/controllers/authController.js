@@ -1,11 +1,24 @@
 const { prisma } = require('../config/database');
+const { Role } = require('@prisma/client'); // Import Role enum
 const { hashPassword, comparePassword, validatePasswordStrength } = require('../utils/password');
 const { generateToken } = require('../utils/jwt');
 
 const register = async (req, res, next) => {
   try {
-    const { email, password, name, userType } = req.body;
-    const role = userType; // Map userType to role for backward compatibility
+    const { email, password, name, userType, role: roleRaw } = req.body;
+    // Accept either 'role' or 'userType' for backward compatibility
+    const roleString = (roleRaw || userType || '').toLowerCase();
+    let role;
+    if (roleString === 'mentor') {
+      role = Role.MENTOR;
+    } else if (roleString === 'mentee') {
+      role = Role.MENTEE;
+    } else {
+      const error = new Error('Invalid role');
+      error.statusCode = 400;
+      error.code = 'INVALID_ROLE';
+      return next(error);
+    }
 
     // Additional password strength validation
     const passwordValidation = validatePasswordStrength(password);
@@ -24,7 +37,7 @@ const register = async (req, res, next) => {
 
     if (existingUser) {
       const error = new Error('User already exists');
-      error.statusCode = 409;
+      error.statusCode = 400;
       error.code = 'USER_EXISTS';
       return next(error);
     }
@@ -37,9 +50,9 @@ const register = async (req, res, next) => {
       const newUser = await tx.user.create({
         data: {
           email: email.toLowerCase(),
-          password: hashedPassword,
+          passwordHash: hashedPassword, // Use correct field name
           name,
-          role // Use role instead of userType
+          role
         },
         select: {
           id: true,
@@ -51,13 +64,13 @@ const register = async (req, res, next) => {
       });
 
       // Create role-specific profile
-      if (role === 'mentor') {
+      if (role === Role.MENTOR) {
         await tx.mentor.create({
           data: {
             userId: newUser.id
           }
         });
-      } else if (role === 'mentee') {
+      } else if (role === Role.MENTEE) {
         await tx.mentee.create({
           data: {
             userId: newUser.id
@@ -74,22 +87,26 @@ const register = async (req, res, next) => {
       role: user.role
     });
 
+    // Map enum to string for response
+    const userResponse = {
+      ...user,
+      role: user.role === Role.MENTOR ? 'mentor' : 'mentee'
+    };
+
     res.status(201).json({
       message: 'User registered successfully',
-      user,
+      user: userResponse,
       token
     });
   } catch (error) {
     console.error('Registration error:', error);
-    
     // Handle specific Prisma errors
     if (error.code === 'P2002') {
-      error.statusCode = 409;
+      error.statusCode = 400;
       error.code = 'USER_EXISTS';
       error.message = 'User already exists';
       return next(error);
     }
-    
     error.statusCode = 500;
     error.code = 'REGISTRATION_ERROR';
     error.message = 'Registration failed';
@@ -129,14 +146,17 @@ const login = async (req, res, next) => {
       role: user.role
     });
 
+    // Map enum to string for response
+    const userResponse = {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role === Role.MENTOR ? 'mentor' : 'mentee'
+    };
+
     res.json({
       message: 'Login successful',
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role
-      },
+      user: userResponse,
       token
     });
   } catch (error) {
