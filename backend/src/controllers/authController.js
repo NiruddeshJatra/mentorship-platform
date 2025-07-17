@@ -1,8 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
+const { prisma } = require('../config/database');
 const { hashPassword, comparePassword, validatePasswordStrength } = require('../utils/password');
 const { generateToken } = require('../utils/jwt');
-
-const prisma = new PrismaClient();
 
 const register = async (req, res) => {
   try {
