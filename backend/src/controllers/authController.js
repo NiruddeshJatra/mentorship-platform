@@ -116,7 +116,7 @@ const login = async (req, res) => {
     }
 
     // Verify password
-    const isValidPassword = await comparePassword(password, user.password);
+    const isValidPassword = await comparePassword(password, user.passwordHash);
 
     if (!isValidPassword) {
       return res.status(401).json({ 
