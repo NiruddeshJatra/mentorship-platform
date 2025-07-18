@@ -31,3 +31,14 @@ Core requirement: build a functional mentorship booking platform with basic feat
 | Topics | Predefined or custom? | ✅ Predefined list, extendable |
 | Timezones | Use UTC or local time? | ✅ Asia/Dhaka for now |
 | Booking approval | Auto or manual? | ✅ Manual approval by mentor |
+
+## Key Decisions & Tradeoffs
+
+| Question                             | Decision                              | Why                                                          |
+| ------------------------------------ | ------------------------------------- | ------------------------------------------------------------ |
+| Separate mentors/mentees tables?     | ✅ Yes                                 | Cleaner schema, easier for role-specific data                |
+| Topics vs Session Types vs Expertise | ✅ Unified via `mentor_expertise`      | Avoids redundant tables, allows pricing/duration flexibility |
+| Timezone handling                    | 🌍 Asia/Dhaka by default              | Simplifies MVP, can be converted later                       |
+| Booking confirmation                 | ✅ Manual by mentor                    | Prevents double-booking conflicts                            |
+| Recurring slots                      | ✅ Supported via pattern field         | Needed for long-term mentoring                               |
+| Double booking prevention            | ✅ Via DB constraints & atomic updates | Ensures data integrity                                       |

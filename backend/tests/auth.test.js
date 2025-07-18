@@ -105,13 +105,12 @@ describe('Password Utility', () => {
   });
 });
 
-// Comment out or remove the Validation Utility tests for isValidEmail
-// describe('Validation Utility', () => {
-//   it('should validate a correct email', () => {
-//     expect(validationUtils.isValidEmail('test@example.com')).toBe(true);
-//   });
+describe('Validation Utility', () => {
+  it('should validate a correct email', () => {
+    expect(validationUtils.isValidEmail('test@example.com')).toBe(true);
+  });
 
-//   it('should invalidate an incorrect email', () => {
-//     expect(validationUtils.isValidEmail('not-an-email')).toBe(false);
-//   });
-// }); 
+  it('should invalidate an incorrect email', () => {
+    expect(validationUtils.isValidEmail('not-an-email')).toBe(false);
+  });
+});
