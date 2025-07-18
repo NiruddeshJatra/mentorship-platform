@@ -276,10 +276,11 @@ const updateExpertise = async (req, res, next) => {
     });
 
     if (!existingExpertise) {
-      const error = new Error('Expertise not found or unauthorized');
-      error.statusCode = 404;
-      error.code = 'EXPERTISE_NOT_FOUND';
-      return next(error);
+      // For testing purposes, if expertise doesn't exist, return 404
+      return res.status(404).json({
+        error: 'Expertise not found or unauthorized',
+        code: 'EXPERTISE_NOT_FOUND'
+      });
     }
 
     // If changing topic, check if new topic exists and not duplicate
@@ -350,10 +351,10 @@ const deleteExpertise = async (req, res, next) => {
     });
 
     if (!mentor) {
-      const error = new Error('Mentor profile not found');
-      error.statusCode = 404;
-      error.code = 'MENTOR_NOT_FOUND';
-      return next(error);
+      return res.status(404).json({
+        error: 'Mentor profile not found',
+        code: 'MENTOR_NOT_FOUND'
+      });
     }
 
     // Check if expertise exists and belongs to mentor
@@ -365,10 +366,10 @@ const deleteExpertise = async (req, res, next) => {
     });
 
     if (!existingExpertise) {
-      const error = new Error('Expertise not found or unauthorized');
-      error.statusCode = 404;
-      error.code = 'EXPERTISE_NOT_FOUND';
-      return next(error);
+      return res.status(404).json({
+        error: 'Expertise not found or unauthorized',
+        code: 'EXPERTISE_NOT_FOUND'
+      });
     }
 
     // Check if there are any bookings for this expertise
@@ -382,10 +383,10 @@ const deleteExpertise = async (req, res, next) => {
     });
 
     if (bookingCount > 0) {
-      const error = new Error('Cannot delete expertise with active bookings');
-      error.statusCode = 400;
-      error.code = 'EXPERTISE_HAS_BOOKINGS';
-      return next(error);
+      return res.status(400).json({
+        error: 'Cannot delete expertise with active bookings',
+        code: 'EXPERTISE_HAS_BOOKINGS'
+      });
     }
 
     // Soft delete by setting isActive to false
@@ -571,10 +572,10 @@ const updateAvailability = async (req, res, next) => {
     });
 
     if (!mentor) {
-      const error = new Error('Mentor profile not found');
-      error.statusCode = 404;
-      error.code = 'MENTOR_NOT_FOUND';
-      return next(error);
+      return res.status(404).json({
+        error: 'Mentor profile not found',
+        code: 'MENTOR_NOT_FOUND'
+      });
     }
 
     // Check if slot exists and belongs to mentor
@@ -586,18 +587,18 @@ const updateAvailability = async (req, res, next) => {
     });
 
     if (!existingSlot) {
-      const error = new Error('Availability slot not found or unauthorized');
-      error.statusCode = 404;
-      error.code = 'SLOT_NOT_FOUND';
-      return next(error);
+      return res.status(404).json({
+        error: 'Availability slot not found or unauthorized',
+        code: 'SLOT_NOT_FOUND'
+      });
     }
 
     // Check if slot is booked
     if (existingSlot.status === AvailabilityStatus.BOOKED) {
-      const error = new Error('Cannot update booked availability slot');
-      error.statusCode = 400;
-      error.code = 'SLOT_BOOKED';
-      return next(error);
+      return res.status(400).json({
+        error: 'Cannot update booked availability slot',
+        code: 'SLOT_BOOKED'
+      });
     }
 
     // Validate new dates if provided
@@ -607,17 +608,17 @@ const updateAvailability = async (req, res, next) => {
       const now = new Date();
 
       if (start <= now) {
-        const error = new Error('Start time must be in the future');
-        error.statusCode = 400;
-        error.code = 'INVALID_START_TIME';
-        return next(error);
+        return res.status(400).json({
+          error: 'Start time must be in the future',
+          code: 'INVALID_START_TIME'
+        });
       }
 
       if (end <= start) {
-        const error = new Error('End time must be after start time');
-        error.statusCode = 400;
-        error.code = 'INVALID_END_TIME';
-        return next(error);
+        return res.status(400).json({
+          error: 'End time must be after start time',
+          code: 'INVALID_END_TIME'
+        });
       }
 
       // Check for overlapping slots (excluding current slot)
@@ -679,10 +680,10 @@ const deleteAvailability = async (req, res, next) => {
     });
 
     if (!mentor) {
-      const error = new Error('Mentor profile not found');
-      error.statusCode = 404;
-      error.code = 'MENTOR_NOT_FOUND';
-      return next(error);
+      return res.status(404).json({
+        error: 'Mentor profile not found',
+        code: 'MENTOR_NOT_FOUND'
+      });
     }
 
     // Check if slot exists and belongs to mentor
@@ -694,18 +695,18 @@ const deleteAvailability = async (req, res, next) => {
     });
 
     if (!existingSlot) {
-      const error = new Error('Availability slot not found or unauthorized');
-      error.statusCode = 404;
-      error.code = 'SLOT_NOT_FOUND';
-      return next(error);
+      return res.status(404).json({
+        error: 'Availability slot not found or unauthorized',
+        code: 'SLOT_NOT_FOUND'
+      });
     }
 
     // Check if slot is booked
     if (existingSlot.status === AvailabilityStatus.BOOKED) {
-      const error = new Error('Cannot delete booked availability slot');
-      error.statusCode = 400;
-      error.code = 'SLOT_BOOKED';
-      return next(error);
+      return res.status(400).json({
+        error: 'Cannot delete booked availability slot',
+        code: 'SLOT_BOOKED'
+      });
     }
 
     // Soft delete by setting status to CANCELLED

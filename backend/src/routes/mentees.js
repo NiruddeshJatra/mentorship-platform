@@ -8,7 +8,7 @@ const {
   getMentorDetails
 } = require('../controllers/menteeController');
 const { authenticateToken, requireRole } = require('../middleware/auth');
-const { validateRequest } = require('../middleware/validation');
+const { validateRequest, validateQuery } = require('../middleware/validation');
 const { menteeProfileSchema, mentorSearchSchema } = require('../utils/validation');
 
 // All routes require mentee authentication
@@ -21,7 +21,7 @@ router.put('/profile', validateRequest(menteeProfileSchema), updateProfile);
 router.get('/profile', getProfile);
 
 // Mentor discovery
-router.get('/mentors/search', validateRequest(mentorSearchSchema), searchMentors);
+router.get('/mentors/search', validateQuery(mentorSearchSchema), searchMentors);
 router.get('/mentors/:id', getMentorDetails);
 
 module.exports = router;

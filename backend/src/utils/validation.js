@@ -1,21 +1,26 @@
 const Joi = require('joi');
 
+const isValidEmail = (email) => {
+  const { error } = Joi.string().email().validate(email);
+  return !error;
+};
+
 // Custom validator for password strength
 const passwordValidator = (value, helpers) => {
   if (value.length < 12) {
-    return helpers.error('password.minLength');
+    return helpers.message('Password must be at least 12 characters', { code: 'WEAK_PASSWORD' });
   }
   if (!/[a-z]/.test(value)) {
-    return helpers.error('password.lowercase');
+    return helpers.message('Password must contain at least one lowercase letter', { code: 'WEAK_PASSWORD' });
   }
   if (!/[A-Z]/.test(value)) {
-    return helpers.error('password.uppercase');
+    return helpers.message('Password must contain at least one uppercase letter', { code: 'WEAK_PASSWORD' });
   }
   if (!/\d/.test(value)) {
-    return helpers.error('password.number');
+    return helpers.message('Password must contain at least one number', { code: 'WEAK_PASSWORD' });
   }
   if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
-    return helpers.error('password.symbol');
+    return helpers.message('Password must contain at least one symbol', { code: 'WEAK_PASSWORD' });
   }
   return value;
 };
@@ -31,13 +36,7 @@ const xssValidator = (value, helpers) => {
 // Auth schemas
 const registerSchema = Joi.object({
   email: Joi.string().email().required(),
-  password: Joi.string().custom(passwordValidator).required().messages({
-    'password.minLength': 'Password must be at least 12 characters',
-    'password.lowercase': 'Password must contain at least one lowercase letter',
-    'password.uppercase': 'Password must contain at least one uppercase letter',
-    'password.number': 'Password must contain at least one number',
-    'password.symbol': 'Password must contain at least one symbol'
-  }),
+  password: Joi.string().custom(passwordValidator).required(),
   name: Joi.string().min(2).max(50).custom(xssValidator).required().messages({
     'xss.scriptTag': 'Name cannot contain script tags'
   }),
@@ -124,6 +123,7 @@ const topicSchema = Joi.object({
 });
 
 module.exports = {
+  isValidEmail,
   registerSchema,
   loginSchema,
   updateProfileSchema,

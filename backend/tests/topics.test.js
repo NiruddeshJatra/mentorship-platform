@@ -8,8 +8,31 @@ describe('Topics API', () => {
 
   beforeAll(async () => {
     // Register and login as mentor and mentee, get tokens
-    // mentorToken = await getMentorToken();
-    // menteeToken = await getMenteeToken();
+    const mentorRes = await request(app)
+      .post('/api/auth/register')
+      .send({
+        email: 'mentor@test.com',
+        password: 'TestPassword123!',
+        name: 'Test Mentor',
+        role: 'mentor'
+      });
+    mentorToken = mentorRes.body.token;
+    
+    const menteeRes = await request(app)
+      .post('/api/auth/register')
+      .send({
+        email: 'mentee@test.com',
+        password: 'TestPassword123!',
+        name: 'Test Mentee',
+        role: 'mentee'
+      });
+    menteeToken = menteeRes.body.token;
+
+    // Seed a topic for fetch test
+    await request(app)
+      .post('/api/topics')
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send({ name: 'Seeded Topic', description: 'A topic seeded for testing.' });
   });
 
   test('should fetch all topics', async () => {
@@ -56,4 +79,4 @@ describe('Topics API', () => {
     expect(res.statusCode).toBe(403);
     expect(res.body.error).toMatch(/insufficient permissions/i);
   });
-}); 
+});
