@@ -220,10 +220,52 @@ const getBookingDetail = async (req, res, next) => {
   }
 };
 
+// Cancel a booking (mentor or mentee)
+const cancelBooking = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const role = req.user.role;
+    const bookingId = req.params.id;
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { availabilitySlot: true }
+    });
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
+    }
+    if (booking.mentorId !== userId && booking.menteeId !== userId) {
+      return res.status(403).json({ error: 'Not authorized to cancel this booking', code: 'NOT_AUTHORIZED' });
+    }
+    if (!['PENDING', 'CONFIRMED'].includes(booking.status)) {
+      return res.status(400).json({ error: 'Only pending or confirmed bookings can be cancelled', code: 'INVALID_STATUS' });
+    }
+    // Cancel booking
+    const updatedBooking = await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: 'CANCELLED' },
+      include: { mentor: true, mentee: true, mentorExpertise: true, availabilitySlot: true }
+    });
+    // Optionally, set slot to AVAILABLE if it was booked
+    if (booking.availabilitySlot && booking.availabilitySlot.status === 'BOOKED') {
+      await prisma.availabilitySlot.update({
+        where: { id: booking.availabilitySlotId },
+        data: { status: 'AVAILABLE' }
+      });
+    }
+    res.json({ message: 'Booking cancelled', booking: updatedBooking });
+  } catch (error) {
+    console.error('Cancel booking error:', error);
+    error.statusCode = 500;
+    error.code = 'CANCEL_BOOKING_ERROR';
+    next(error);
+  }
+};
+
 module.exports = {
   createBooking,
   approveBooking,
   rejectBooking,
   listBookings,
   getBookingDetail,
+  cancelBooking,
 }; 
