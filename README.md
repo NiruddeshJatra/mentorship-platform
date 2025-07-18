@@ -145,16 +145,24 @@ See [`docs/04-auth-system.md`](docs/04-auth-system.md) for a detailed writeup, i
 
 ---
 
+## 🧑‍💼 Onboarding System
+
+The onboarding system enables mentors and mentees to complete and update their profiles, manage expertise and availability (for mentors), and search for mentors (for mentees). Key features include:
+
+- **Mentor onboarding**: Profile completion/update, expertise management (add/update/delete), and availability management (add/update/delete, recurring slots, overlap validation).
+- **Mentee onboarding**: Profile completion/update and mentor search (by topic, company, rating, price, with pagination and sorting).
+- **Role-based access**: All onboarding endpoints require authentication; mentor/mentee-specific endpoints require the correct role.
+- **Validation**: Joi schemas for all onboarding data (profile, expertise, availability, search queries).
+- **Error handling**: Consistent error codes/messages for validation, authorization, and business logic errors (e.g., slot overlap, duplicate expertise).
+- **Comprehensive tests**: All onboarding flows, validation errors, edge cases, and business rules.
+
+See [`docs/05-onboarding-system.md`](docs/05-onboarding-system.md) for a detailed writeup, including challenges faced and solutions.
+
+---
+
 ## 💡 Key Decisions & Tradeoffs
 
-| Question                             | Decision                              | Why                                                          |
-| ------------------------------------ | ------------------------------------- | ------------------------------------------------------------ |
-| Separate mentors/mentees tables?     | ✅ Yes                                 | Cleaner schema, easier for role-specific data                |
-| Topics vs Session Types vs Expertise | ✅ Unified via `mentor_expertise`      | Avoids redundant tables, allows pricing/duration flexibility |
-| Timezone handling                    | 🌍 Asia/Dhaka by default              | Simplifies MVP, can be converted later                       |
-| Booking confirmation                 | ✅ Manual by mentor                    | Prevents double-booking conflicts                            |
-| Recurring slots                      | ✅ Supported via pattern field         | Needed for long-term mentoring                               |
-| Double booking prevention            | ✅ Via DB constraints & atomic updates | Ensures data integrity                                       |
+See [docs/01-planning.md](docs/01-planning.md) for key design decisions and tradeoffs.
 
 ---
 
@@ -236,7 +244,8 @@ Some potential V2 features:
 - [01-planning.md](docs/01-planning.md): Planning and design decisions
 - [02-schema-design.md](docs/02-schema-design.md): Database schema
 - [03-project-setup.md](docs/03-project-setup.md): Project structure and setup
-- [04-auth-system.md](docs/04-auth-system.md): Authentication system (this step)
+- [04-auth-system.md](docs/04-auth-system.md): Authentication system
+- [05-onboarding-system.md](docs/05-onboarding-system.md): Onboarding system (mentor/mentee onboarding, expertise, availability)
 
 ---
 
