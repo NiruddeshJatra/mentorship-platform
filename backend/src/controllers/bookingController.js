@@ -157,8 +157,73 @@ const rejectBooking = async (req, res, next) => {
   }
 };
 
+// List bookings for the current user (mentor or mentee)
+const listBookings = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const role = req.user.role;
+    let where = {};
+    if (role === 'MENTOR') {
+      where.mentorId = userId;
+    } else if (role === 'MENTEE') {
+      where.menteeId = userId;
+    } else {
+      return res.status(403).json({ error: 'Invalid role', code: 'INVALID_ROLE' });
+    }
+    // Optional: filter by status, pagination, etc.
+    const bookings = await prisma.booking.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        mentor: true,
+        mentee: true,
+        mentorExpertise: true,
+        availabilitySlot: true,
+      },
+    });
+    res.json({ bookings });
+  } catch (error) {
+    console.error('List bookings error:', error);
+    error.statusCode = 500;
+    error.code = 'LIST_BOOKINGS_ERROR';
+    next(error);
+  }
+};
+
+// Get booking detail for the current user (mentor or mentee)
+const getBookingDetail = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const role = req.user.role;
+    const bookingId = req.params.id;
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: {
+        mentor: true,
+        mentee: true,
+        mentorExpertise: true,
+        availabilitySlot: true,
+      },
+    });
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
+    }
+    if (booking.mentorId !== userId && booking.menteeId !== userId) {
+      return res.status(403).json({ error: 'Not authorized to view this booking', code: 'NOT_AUTHORIZED' });
+    }
+    res.json({ booking });
+  } catch (error) {
+    console.error('Get booking detail error:', error);
+    error.statusCode = 500;
+    error.code = 'GET_BOOKING_DETAIL_ERROR';
+    next(error);
+  }
+};
+
 module.exports = {
   createBooking,
   approveBooking,
   rejectBooking,
+  listBookings,
+  getBookingDetail,
 }; 
