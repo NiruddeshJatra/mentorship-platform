@@ -5,26 +5,28 @@ const prisma = new PrismaClient();
 
 describe('Mentee Search API', () => {
   let menteeToken;
-  
-  beforeAll(async () => {
-    // Register mentee
+  let prisma;
+  let menteeEmail;
+  beforeAll(() => {
+    prisma = global.__PRISMA__;
+  });
+  beforeEach(async () => {
+    menteeEmail = 'search_test' + Date.now() + Math.random() + '@example.com';
     await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'search_test@example.com',
+        email: menteeEmail,
         password: 'TestPassword123!',
         name: 'Search Test User',
         role: 'mentee'
       });
-    
     // Login as mentee
     const res = await request(app)
       .post('/api/auth/login')
       .send({
-        email: 'search_test@example.com',
+        email: menteeEmail,
         password: 'TestPassword123!'
       });
-    
     menteeToken = res.body.token;
   });
   

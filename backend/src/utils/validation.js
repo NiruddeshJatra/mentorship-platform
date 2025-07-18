@@ -132,5 +132,7 @@ module.exports = {
   availabilitySlotSchema,
   menteeProfileSchema,
   mentorSearchSchema,
-  topicSchema
+  topicSchema,
+  passwordValidator,
+  xssValidator
 };

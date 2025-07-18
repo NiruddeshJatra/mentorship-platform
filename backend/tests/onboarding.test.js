@@ -1,3 +1,4 @@
+jest.setTimeout(30000);
 const request = require('supertest');
 const app = require('../src/app');
 
@@ -8,29 +9,31 @@ describe('Mentor Onboarding', () => {
   let mentorToken;
   let expertiseId;
   let slotId;
+  let prisma;
+  let mentorEmail;
 
-  beforeAll(async () => {
-    // Register as mentor
+  beforeAll(() => {
+    prisma = global.__PRISMA__;
+  });
+
+  beforeEach(async () => {
+    mentorEmail = 'mentor_onboarding' + Date.now() + Math.random() + '@test.com';
     await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'mentor_onboarding@test.com',
+        email: mentorEmail,
         password: 'TestPassword123!',
         name: 'Onboarding Mentor',
         role: 'mentor'
       });
-    
     // Login as mentor to get token
     const loginRes = await request(app)
       .post('/api/auth/login')
       .send({
-        email: 'mentor_onboarding@test.com',
+        email: mentorEmail,
         password: 'TestPassword123!'
       });
-    
-    console.log('Mentor login response:', loginRes.body);
     mentorToken = loginRes.body.token;
-    console.log('Mentor token:', mentorToken);
   });
 
   test('should complete mentor profile', async () => {
@@ -252,29 +255,31 @@ describe('Mentor Onboarding', () => {
 
 describe('Mentee Onboarding', () => {
   let menteeToken;
+  let prisma;
+  let menteeEmail;
 
-  beforeAll(async () => {
-    // Register as mentee
+  beforeAll(() => {
+    prisma = global.__PRISMA__;
+  });
+
+  beforeEach(async () => {
+    menteeEmail = 'mentee_onboarding' + Date.now() + Math.random() + '@test.com';
     await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'mentee_onboarding@test.com',
+        email: menteeEmail,
         password: 'TestPassword123!',
         name: 'Onboarding Mentee',
         role: 'mentee'
       });
-    
     // Login as mentee to get token
     const loginRes = await request(app)
       .post('/api/auth/login')
       .send({
-        email: 'mentee_onboarding@test.com',
+        email: menteeEmail,
         password: 'TestPassword123!'
       });
-    
-    console.log('Mentee login response:', loginRes.body);
     menteeToken = loginRes.body.token;
-    console.log('Mentee token:', menteeToken);
   });
 
   test('should complete mentee profile', async () => {

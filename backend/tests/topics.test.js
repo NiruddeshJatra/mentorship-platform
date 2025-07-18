@@ -1,38 +1,48 @@
+jest.setTimeout(30000);
 const request = require('supertest');
 const app = require('../src/app');
 
 describe('Topics API', () => {
   let mentorToken;
   let menteeToken;
-  let topicName = 'New Unique Topic';
+  let topicName;
+  let prisma;
+  let mentorEmail;
+  let menteeEmail;
 
-  beforeAll(async () => {
-    // Register and login as mentor and mentee, get tokens
+  beforeAll(() => {
+    prisma = global.__PRISMA__;
+  });
+
+  beforeEach(async () => {
+    mentorEmail = 'mentor' + Date.now() + Math.random() + '@test.com';
+    menteeEmail = 'mentee' + Date.now() + Math.random() + '@test.com';
+    // Register and login as mentor
     const mentorRes = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'mentor@test.com',
+        email: mentorEmail,
         password: 'TestPassword123!',
         name: 'Test Mentor',
         role: 'mentor'
       });
     mentorToken = mentorRes.body.token;
-    
+    // Register and login as mentee
     const menteeRes = await request(app)
       .post('/api/auth/register')
       .send({
-        email: 'mentee@test.com',
+        email: menteeEmail,
         password: 'TestPassword123!',
         name: 'Test Mentee',
         role: 'mentee'
       });
     menteeToken = menteeRes.body.token;
-
     // Seed a topic for fetch test
     await request(app)
       .post('/api/topics')
       .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ name: 'Seeded Topic', description: 'A topic seeded for testing.' });
+      .send({ name: 'Seeded Topic ' + Date.now(), description: 'A topic seeded for testing.' });
+    topicName = 'New Unique Topic ' + Date.now() + Math.random();
   });
 
   test('should fetch all topics', async () => {

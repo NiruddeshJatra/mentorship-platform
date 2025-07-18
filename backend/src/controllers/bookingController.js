@@ -1,9 +1,16 @@
 const { prisma } = require('../config/database');
+const { getUserMentorId, getUserMenteeId } = require('../utils/userHelpers');
 
 // Create a new booking (mentee books a session)
 const createBooking = async (req, res, next) => {
   try {
-    const menteeId = req.user.id;
+    const userId = req.user.id;
+    const menteeId = await getUserMenteeId(userId);
+    
+    if (!menteeId) {
+      return res.status(404).json({ error: 'Mentee profile not found', code: 'PROFILE_NOT_FOUND' });
+    }
+    
     const { mentorId, mentorExpertiseId, availabilitySlotId, startDatetime, endDatetime, totalPrice, menteeNotes } = req.body;
 
     // Validate required fields
@@ -41,10 +48,10 @@ const createBooking = async (req, res, next) => {
     // Create booking
     const booking = await prisma.booking.create({
       data: {
-        mentee: { connect: { id: menteeId } },
-        mentor: { connect: { id: mentorId } },
-        mentorExpertise: { connect: { id: mentorExpertiseId } },
-        availabilitySlot: { connect: { id: availabilitySlotId } },
+        menteeId,
+        mentorId,
+        mentorExpertiseId,
+        availabilitySlotId,
         startDatetime: new Date(startDatetime),
         endDatetime: new Date(endDatetime),
         totalPrice,
@@ -60,13 +67,13 @@ const createBooking = async (req, res, next) => {
       },
     });
 
-    // Optionally, update slot status to BOOKED (if you want to lock immediately)
-    // await prisma.availabilitySlot.update({
-    //   where: { id: availabilitySlotId },
-    //   data: { status: 'BOOKED' },
-    // });
+    // Update slot status to BOOKED
+    await prisma.availabilitySlot.update({
+      where: { id: availabilitySlotId },
+      data: { status: 'BOOKED' },
+    });
 
-    res.status(201).json({ message: 'Booking created', booking });
+    res.status(201).json({ booking });
   } catch (error) {
     console.error('Create booking error:', error);
     error.statusCode = 500;
@@ -78,7 +85,13 @@ const createBooking = async (req, res, next) => {
 // Approve a booking (mentor)
 const approveBooking = async (req, res, next) => {
   try {
-    const mentorId = req.user.id;
+    const userId = req.user.id;
+    const mentorId = await getUserMentorId(userId);
+    
+    if (!mentorId) {
+      return res.status(404).json({ error: 'Mentor profile not found', code: 'PROFILE_NOT_FOUND' });
+    }
+    
     const bookingId = req.params.id;
 
     // Find booking and check permissions
@@ -102,12 +115,12 @@ const approveBooking = async (req, res, next) => {
       data: { status: 'CONFIRMED' },
       include: { mentor: true, mentee: true, mentorExpertise: true, availabilitySlot: true }
     });
-    // Optionally, update slot status to BOOKED
+    // Update slot status to BOOKED
     await prisma.availabilitySlot.update({
       where: { id: booking.availabilitySlotId },
       data: { status: 'BOOKED' }
     });
-    res.json({ message: 'Booking approved', booking: updatedBooking });
+    res.json({ booking: updatedBooking });
   } catch (error) {
     console.error('Approve booking error:', error);
     error.statusCode = 500;
@@ -119,7 +132,7 @@ const approveBooking = async (req, res, next) => {
 // Reject a booking (mentor)
 const rejectBooking = async (req, res, next) => {
   try {
-    const mentorId = req.user.id;
+    const mentorId = await getUserMentorId(req.user.id);
     const bookingId = req.params.id;
 
     // Find booking and check permissions
@@ -164,9 +177,19 @@ const listBookings = async (req, res, next) => {
     const role = req.user.role;
     let where = {};
     if (role === 'MENTOR') {
-      where.mentorId = userId;
+      // Use mentorId from userId
+      const mentorId = await getUserMentorId(userId);
+      if (!mentorId) {
+        return res.status(404).json({ error: 'Mentor profile not found', code: 'PROFILE_NOT_FOUND' });
+      }
+      where.mentorId = mentorId;
     } else if (role === 'MENTEE') {
-      where.menteeId = userId;
+      // Use menteeId from userId
+      const menteeId = await getUserMenteeId(userId);
+      if (!menteeId) {
+        return res.status(404).json({ error: 'Mentee profile not found', code: 'PROFILE_NOT_FOUND' });
+      }
+      where.menteeId = menteeId;
     } else {
       return res.status(403).json({ error: 'Invalid role', code: 'INVALID_ROLE' });
     }
@@ -208,7 +231,16 @@ const getBookingDetail = async (req, res, next) => {
     if (!booking) {
       return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
     }
-    if (booking.mentorId !== userId && booking.menteeId !== userId) {
+    // Check if user is involved in the booking
+    let isAuthorized = false;
+    if (role === 'MENTOR') {
+      const mentorId = await getUserMentorId(userId);
+      isAuthorized = booking.mentorId === mentorId;
+    } else if (role === 'MENTEE') {
+      const menteeId = await getUserMenteeId(userId);
+      isAuthorized = booking.menteeId === menteeId;
+    }
+    if (!isAuthorized) {
       return res.status(403).json({ error: 'Not authorized to view this booking', code: 'NOT_AUTHORIZED' });
     }
     res.json({ booking });
@@ -233,7 +265,16 @@ const cancelBooking = async (req, res, next) => {
     if (!booking) {
       return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
     }
-    if (booking.mentorId !== userId && booking.menteeId !== userId) {
+    // Check if user is involved in the booking
+    let isAuthorized = false;
+    if (role === 'MENTOR') {
+      const mentorId = await getUserMentorId(userId);
+      isAuthorized = booking.mentorId === mentorId;
+    } else if (role === 'MENTEE') {
+      const menteeId = await getUserMenteeId(userId);
+      isAuthorized = booking.menteeId === menteeId;
+    }
+    if (!isAuthorized) {
       return res.status(403).json({ error: 'Not authorized to cancel this booking', code: 'NOT_AUTHORIZED' });
     }
     if (!['PENDING', 'CONFIRMED'].includes(booking.status)) {
@@ -268,4 +309,4 @@ module.exports = {
   listBookings,
   getBookingDetail,
   cancelBooking,
-}; 
+};
