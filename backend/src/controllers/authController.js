@@ -6,6 +6,15 @@ const { generateToken } = require('../utils/jwt');
 const register = async (req, res, next) => {
   try {
     const { email, password, name, userType, role: roleRaw } = req.body;
+    
+    // Validate input data
+    if (!email || !password || !name) {
+      return res.status(400).json({
+        error: 'Missing required fields',
+        code: 'MISSING_FIELDS'
+      });
+    }
+    
     // Accept either 'role' or 'userType' for backward compatibility
     const roleString = (roleRaw || userType || '').toLowerCase();
     let role;
@@ -14,20 +23,20 @@ const register = async (req, res, next) => {
     } else if (roleString === 'mentee') {
       role = Role.MENTEE;
     } else {
-      const error = new Error('Invalid role');
-      error.statusCode = 400;
-      error.code = 'INVALID_ROLE';
-      return next(error);
+      return res.status(400).json({
+        error: 'Invalid role',
+        code: 'INVALID_ROLE'
+      });
     }
 
     // Additional password strength validation
     const passwordValidation = validatePasswordStrength(password);
     if (!passwordValidation.isValid) {
-      const error = new Error('Password does not meet requirements');
-      error.statusCode = 400;
-      error.code = 'WEAK_PASSWORD';
-      error.details = passwordValidation.errors;
-      return next(error);
+      return res.status(400).json({
+        error: 'Password does not meet requirements',
+        code: 'WEAK_PASSWORD',
+        details: passwordValidation.errors
+      });
     }
 
     // Check if user already exists
@@ -36,10 +45,10 @@ const register = async (req, res, next) => {
     });
 
     if (existingUser) {
-      const error = new Error('User already exists');
-      error.statusCode = 400;
-      error.code = 'USER_EXISTS';
-      return next(error);
+      return res.status(400).json({
+        error: 'User already exists',
+        code: 'USER_EXISTS'
+      });
     }
 
     // Hash password
@@ -117,27 +126,43 @@ const register = async (req, res, next) => {
 const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+    
+    // Validate input data
+    if (!email || !password) {
+      return res.status(400).json({
+        error: 'Email and password are required',
+        code: 'MISSING_CREDENTIALS'
+      });
+    }
 
     // Find user
     const user = await prisma.user.findUnique({
-      where: { email: email.toLowerCase() }
+      where: { email: email?.toLowerCase() }
     });
 
     if (!user) {
-      const error = new Error('Invalid credentials');
-      error.statusCode = 401;
-      error.code = 'INVALID_CREDENTIALS';
-      return next(error);
+      return res.status(401).json({
+        error: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS'
+      });
     }
 
     // Verify password
-    const isValidPassword = await comparePassword(password, user.passwordHash);
+    try {
+      const isValidPassword = await comparePassword(password, user.passwordHash);
 
-    if (!isValidPassword) {
-      const error = new Error('Invalid credentials');
-      error.statusCode = 401;
-      error.code = 'INVALID_CREDENTIALS';
-      return next(error);
+      if (!isValidPassword) {
+        return res.status(401).json({
+          error: 'Invalid credentials',
+          code: 'INVALID_CREDENTIALS'
+        });
+      }
+    } catch (err) {
+      console.error('Password comparison error:', err);
+      return res.status(401).json({
+        error: 'Invalid credentials',
+        code: 'INVALID_CREDENTIALS'
+      });
     }
 
     // Generate JWT token

@@ -3,9 +3,18 @@ const validateRequest = (schema) => {
     const { error } = schema.validate(req.body, { abortEarly: false });
     
     if (error) {
+      // Check if this is a password validation error
+      const passwordError = error.details.find(detail => 
+        detail.path.includes('password') && 
+        detail.type === 'password.custom'
+      );
+      
+      // Use WEAK_PASSWORD code for password validation errors
+      const errorCode = passwordError ? 'WEAK_PASSWORD' : (error.details[0]?.context?.code || 'VALIDATION_ERROR');
+      
       return res.status(400).json({
         error: 'Validation failed',
-        code: error.details[0]?.context?.code || 'VALIDATION_ERROR',
+        code: errorCode,
         details: error.details.map(detail => ({
           field: detail.path.join('.'),
           message: detail.message,
