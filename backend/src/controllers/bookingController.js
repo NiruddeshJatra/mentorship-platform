@@ -75,6 +75,90 @@ const createBooking = async (req, res, next) => {
   }
 };
 
+// Approve a booking (mentor)
+const approveBooking = async (req, res, next) => {
+  try {
+    const mentorId = req.user.id;
+    const bookingId = req.params.id;
+
+    // Find booking and check permissions
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { mentor: true, availabilitySlot: true }
+    });
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
+    }
+    if (booking.mentorId !== mentorId) {
+      return res.status(403).json({ error: 'Not authorized to approve this booking', code: 'NOT_AUTHORIZED' });
+    }
+    if (booking.status !== 'PENDING') {
+      return res.status(400).json({ error: 'Only pending bookings can be approved', code: 'INVALID_STATUS' });
+    }
+
+    // Approve booking
+    const updatedBooking = await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: 'CONFIRMED' },
+      include: { mentor: true, mentee: true, mentorExpertise: true, availabilitySlot: true }
+    });
+    // Optionally, update slot status to BOOKED
+    await prisma.availabilitySlot.update({
+      where: { id: booking.availabilitySlotId },
+      data: { status: 'BOOKED' }
+    });
+    res.json({ message: 'Booking approved', booking: updatedBooking });
+  } catch (error) {
+    console.error('Approve booking error:', error);
+    error.statusCode = 500;
+    error.code = 'APPROVE_BOOKING_ERROR';
+    next(error);
+  }
+};
+
+// Reject a booking (mentor)
+const rejectBooking = async (req, res, next) => {
+  try {
+    const mentorId = req.user.id;
+    const bookingId = req.params.id;
+
+    // Find booking and check permissions
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { mentor: true, availabilitySlot: true }
+    });
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
+    }
+    if (booking.mentorId !== mentorId) {
+      return res.status(403).json({ error: 'Not authorized to reject this booking', code: 'NOT_AUTHORIZED' });
+    }
+    if (booking.status !== 'PENDING') {
+      return res.status(400).json({ error: 'Only pending bookings can be rejected', code: 'INVALID_STATUS' });
+    }
+
+    // Reject booking
+    const updatedBooking = await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: 'CANCELLED' },
+      include: { mentor: true, mentee: true, mentorExpertise: true, availabilitySlot: true }
+    });
+    // Optionally, update slot status to AVAILABLE
+    await prisma.availabilitySlot.update({
+      where: { id: booking.availabilitySlotId },
+      data: { status: 'AVAILABLE' }
+    });
+    res.json({ message: 'Booking rejected', booking: updatedBooking });
+  } catch (error) {
+    console.error('Reject booking error:', error);
+    error.statusCode = 500;
+    error.code = 'REJECT_BOOKING_ERROR';
+    next(error);
+  }
+};
+
 module.exports = {
   createBooking,
+  approveBooking,
+  rejectBooking,
 }; 
