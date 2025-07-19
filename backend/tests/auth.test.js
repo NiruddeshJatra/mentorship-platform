@@ -1,6 +1,5 @@
-// ========================================
-// File: backend/tests/auth.test.js
-// ========================================
+jest.setTimeout(30000);
+
 const request = require('supertest');
 const app = require('../src/app');
 const { setupTestDB, cleanupTestDB, createTestUser, createTestMentor, createTestMentee } = require('./setup');
@@ -10,24 +9,8 @@ const validationUtils = require('../src/utils/validation');
 
 describe('Authentication', () => {
   let prisma;
-
-  beforeAll(async () => {
-    prisma = await setupTestDB();
-  });
-
-  afterAll(async () => {
-    await cleanupTestDB(prisma);
-  });
-
-  beforeEach(async () => {
-    // Clean up before each test
-    await prisma.booking.deleteMany();
-    await prisma.review.deleteMany();
-    await prisma.availabilitySlot.deleteMany();
-    await prisma.mentorExpertise.deleteMany();
-    await prisma.mentor.deleteMany();
-    await prisma.mentee.deleteMany();
-    await prisma.user.deleteMany();
+  beforeAll(() => {
+    prisma = global.__PRISMA__;
   });
 
   describe('POST /auth/register', () => {

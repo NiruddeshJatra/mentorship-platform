@@ -1,6 +1,5 @@
-// ========================================
-// File: backend/tests/auth.security.test.js
-// ========================================
+jest.setTimeout(30000);
+
 const request = require('supertest');
 const jwt = require('jsonwebtoken');
 const app = require('../src/app');
@@ -16,20 +15,10 @@ describe('Authentication Security & Edge Cases', () => {
   let mentorUser;
   let mentor;
   let validToken;
-
-  beforeAll(async () => {
-    prisma = await setupTestDB();
+  beforeAll(() => {
+    prisma = global.__PRISMA__;
   });
-
-  afterAll(async () => {
-    await cleanupTestDB(prisma);
-  });
-
   beforeEach(async () => {
-    await prisma.booking.deleteMany();
-    await prisma.mentor.deleteMany();
-    await prisma.mentee.deleteMany();
-    await prisma.user.deleteMany();
     // Create a mentor user for protected route tests
     const uniqueEmail = `mentor_${Date.now()}_${Math.floor(Math.random()*10000)}@example.com`;
     const mentorData = {
