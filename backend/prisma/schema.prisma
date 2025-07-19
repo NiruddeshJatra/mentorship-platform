@@ -24,6 +24,7 @@ model User {
   // Relationships
   mentor           Mentor?
   mentee           Mentee?
+  rescheduleRequests RescheduleRequest[]
 
   @@map("users")
 }
@@ -46,7 +47,6 @@ model Mentor {
   availabilitySlots   AvailabilitySlot[]
   bookingsAsMentor    Booking[]          @relation("MentorBookings")
   reviewsReceived     Review[]           @relation("MentorReviews")
-  rescheduleRequests  RescheduleRequest[]
 
   @@map("mentors")
 }
@@ -166,22 +166,18 @@ model Review {
 }
 
 model RescheduleRequest {
-  id                      String            @id @default(uuid())
-  bookingId               String            @map("booking_id")
-  mentorId                String            @map("mentor_id")
-  requestedBy             RequestedBy       @map("requested_by")
-  originalStartDatetime   DateTime          @map("original_start_datetime")
-  originalEndDatetime     DateTime          @map("original_end_datetime")
-  proposedStartDatetime   DateTime          @map("proposed_start_datetime")
-  proposedEndDatetime     DateTime          @map("proposed_end_datetime")
-  status                  RescheduleStatus  @default(PENDING)
-  reason                  String?
-  createdAt               DateTime          @default(now()) @map("created_at")
-  updatedAt               DateTime          @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  bookingId     String
+  proposerId    String
+  proposedStart DateTime
+  proposedEnd   DateTime
+  status        String   @default("PENDING") // PENDING, ACCEPTED, REJECTED
+  responseAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  // Relationships
-  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
-  mentor  Mentor  @relation(fields: [mentorId], references: [id], onDelete: Cascade)
+  booking       Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  proposer      User     @relation(fields: [proposerId], references: [id])
 
   @@map("reschedule_requests")
 }

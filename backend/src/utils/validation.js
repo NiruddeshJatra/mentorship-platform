@@ -129,6 +129,13 @@ const reviewSchema = Joi.object({
   comment: Joi.string().max(1000).optional()
 });
 
+// Reschedule request schema
+const rescheduleRequestSchema = Joi.object({
+  bookingId: Joi.string().uuid().required(),
+  proposedStart: Joi.date().iso().required(),
+  proposedEnd: Joi.date().iso().greater(Joi.ref('proposedStart')).required()
+});
+
 module.exports = {
   isValidEmail,
   registerSchema,
@@ -140,7 +147,7 @@ module.exports = {
   menteeProfileSchema,
   mentorSearchSchema,
   topicSchema,
-  reviewSchema,
   passwordValidator,
-  xssValidator
+  xssValidator,
+  rescheduleRequestSchema
 };
