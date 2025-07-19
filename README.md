@@ -42,11 +42,23 @@ mentorship-platform/
 │   └── package.json
 ├── frontend/
 │   ├── src/
+│   │   ├── assets/
 │   │   ├── components/
 │   │   ├── pages/
-│   │   ├── services/
-│   │   └── App.tsx
-│   └── package.json
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   └── vite-env.d.ts
+│   ├── public/
+│   │   └── vite.svg
+│   ├── index.html
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── tsconfig.app.json
+│   ├── tsconfig.node.json
+│   ├── vite.config.ts
+│   ├── .gitignore
+│   ├── README.md
+│   └── eslint.config.js
 ├── docker-compose.yml
 └── README.md
 ```
@@ -179,7 +191,9 @@ The reviews system enables mentees to leave feedback after completed sessions, a
 - **Reviews**: Mentees can leave one review per completed booking. Mentor ratings are updated automatically. Reviews are public on mentor profiles.
 - **Rescheduling**: (Planned) Mentees or mentors can propose new times for a booking, with status tracking and validation.
 
-See [`docs/07-reviews-and-rescheduling.md`](docs/07-reviews-and-rescheduling.md) for a detailed writeup, including challenges faced and solutions.
+See [`docs/07-reviews.md`](docs/07-reviews.md) for a detailed writeup, including challenges faced and solutions.
+
+See [`docs/08-rescheduling.md`](docs/08-rescheduling.md) for a detailed writeup, including challenges faced and solutions.
 
 ---
 
@@ -270,7 +284,9 @@ Some potential V2 features:
 - [04-auth-system.md](docs/04-auth-system.md): Authentication system
 - [05-onboarding-system.md](docs/05-onboarding-system.md): Onboarding system (mentor/mentee onboarding, expertise, availability)
 - [06-booking-and-topics.md](docs/06-booking-and-topics.md): Booking and topics system (booking flow, topics management)
-- [07-reviews-and-rescheduling.md](docs/07-reviews-and-rescheduling.md): Reviews and rescheduling system (review flow, rescheduling logic)
+- [07-reviews.md](docs/07-reviews.md): Reviews system (review flow)
+- [08-rescheduling.md](docs/08-rescheduling.md): Rescheduling system (rescheduling logic)
+- [09-frontend-setup.md](docs/09-frontend-setup.md): Frontend setup and structure
 
 ---
 
