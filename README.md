@@ -160,6 +160,18 @@ See [`docs/05-onboarding-system.md`](docs/05-onboarding-system.md) for a detaile
 
 ---
 
+## 📚 Booking & Topics System
+
+The booking system enables mentees to book sessions with mentors, and mentors to approve, reject, or cancel bookings. The topics system allows mentors to create new topics and all users to browse available topics. Both systems enforce robust validation, error handling, and are covered by comprehensive tests.
+
+- **Booking**: Creation, approval, rejection, cancellation, listing, and detail endpoints. Double-booking is prevented by atomic checks and status transitions.
+- **Topics**: Mentors can create new topics (with unique names), and all users can view the list of active topics. Duplicate topic names are blocked at both the application and database level.
+- **Validation & Error Handling**: Joi schemas for all booking and topic data, consistent error codes/messages, and comprehensive test coverage.
+
+See [`docs/06-booking-and-topics.md`](docs/06-booking-and-topics.md) for a detailed writeup, including challenges faced and solutions.
+
+---
+
 ## 💡 Key Decisions & Tradeoffs
 
 See [docs/01-planning.md](docs/01-planning.md) for key design decisions and tradeoffs.
@@ -238,6 +250,7 @@ Some potential V2 features:
 
 ---
 
+
 ## Documentation
 
 - [00-overview.md](docs/00-overview.md): Project overview and goals
@@ -246,6 +259,7 @@ Some potential V2 features:
 - [03-project-setup.md](docs/03-project-setup.md): Project structure and setup
 - [04-auth-system.md](docs/04-auth-system.md): Authentication system
 - [05-onboarding-system.md](docs/05-onboarding-system.md): Onboarding system (mentor/mentee onboarding, expertise, availability)
+- [06-booking-and-topics.md](docs/06-booking-and-topics.md): Booking and topics system (booking flow, topics management)
 
 ---
 
