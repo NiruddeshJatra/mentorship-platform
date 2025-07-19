@@ -20,13 +20,6 @@ mentorship-platform/
 │   │   └── migrations/
 │   ├── .env
 │   └── package.json
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   └── App.tsx
-│   └── package.json
 ├── docker-compose.yml
 └── README.md
 ```
