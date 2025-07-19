@@ -122,6 +122,13 @@ const topicSchema = Joi.object({
   description: Joi.string().max(500).optional()
 });
 
+// Review schemas
+const reviewSchema = Joi.object({
+  bookingId: Joi.string().uuid().required(),
+  rating: Joi.number().integer().min(1).max(5).required(),
+  comment: Joi.string().max(1000).optional()
+});
+
 module.exports = {
   isValidEmail,
   registerSchema,
@@ -133,6 +140,7 @@ module.exports = {
   menteeProfileSchema,
   mentorSearchSchema,
   topicSchema,
+  reviewSchema,
   passwordValidator,
   xssValidator
 };
