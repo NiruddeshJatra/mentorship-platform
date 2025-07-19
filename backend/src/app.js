@@ -16,6 +16,7 @@ const menteeRoutes = require('./routes/mentees');
 const bookingRoutes = require('./routes/bookings');
 const topicRoutes = require('./routes/topics');
 const reviewRoutes = require('./routes/reviews');
+const rescheduleRoutes = require('./routes/reschedule');
 
 require('dotenv').config();
 
@@ -99,6 +100,7 @@ app.use('/api/mentees', menteeRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/topics', topicRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/reschedule-requests', rescheduleRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
