@@ -20,17 +20,17 @@ const getTopics = async (req, res, next) => {
 const createTopic = async (req, res, next) => {
   try {
     const { name, description } = req.body;
-    // Check for duplicate
-    const existing = await prisma.topic.findUnique({ where: { name } });
+    // Normalize name for duplicate check
+    const normalized = name.trim().toLowerCase();
+    const existing = await prisma.topic.findFirst({
+      where: { name: { equals: normalized, mode: 'insensitive' } }
+    });
     if (existing) {
-      const error = new Error('Topic already exists');
-      error.statusCode = 409;
-      error.code = 'TOPIC_EXISTS';
-      return next(error);
+      return res.status(409).json({ error: 'Topic already exists', code: 'TOPIC_EXISTS' });
     }
     const topic = await prisma.topic.create({
       data: {
-        name,
+        name: name.trim(),
         description,
         isPredefined: false,
         isActive: true
@@ -38,16 +38,6 @@ const createTopic = async (req, res, next) => {
     });
     res.status(201).json({ message: 'Topic created', topic });
   } catch (error) {
-    // Handle unique constraint violation (race condition)
-    if (error.code === 'P2002' && error.meta && error.meta.target && error.meta.target.includes('name')) {
-      error.statusCode = 409;
-      error.code = 'TOPIC_EXISTS';
-      error.message = 'Topic already exists';
-      return next(error);
-    }
-    console.error('Create topic error:', error);
-    error.statusCode = 500;
-    error.code = 'CREATE_TOPIC_ERROR';
     next(error);
   }
 };

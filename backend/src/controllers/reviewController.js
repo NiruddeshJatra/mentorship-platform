@@ -105,39 +105,23 @@ const createReview = async (req, res, next) => {
 const getMentorReviews = async (req, res, next) => {
   try {
     const mentorId = req.params.id;
-    
-    // Check if mentor exists
-    const mentor = await prisma.mentor.findUnique({
-      where: { id: mentorId }
-    });
-    
+    // Find mentor profile by id
+    const mentor = await prisma.mentor.findUnique({ where: { id: mentorId } });
     if (!mentor) {
       return res.status(404).json({ error: 'Mentor not found', code: 'MENTOR_NOT_FOUND' });
     }
-
+    // Get reviews for this mentor
     const reviews = await prisma.review.findMany({
       where: { mentorId },
       include: {
-        mentee: {
-          include: {
-            user: {
-              select: {
-                name: true,
-                profileImageUrl: true
-              }
-            }
-          }
-        }
+        mentee: { select: { id: true, userId: true } },
+        booking: { select: { id: true, startDatetime: true, endDatetime: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
-
-    res.json({ reviews });
-  } catch (error) {
-    console.error('Get mentor reviews error:', error);
-    error.statusCode = 500;
-    error.code = 'GET_MENTOR_REVIEWS_ERROR';
-    next(error);
+    return res.status(200).json({ reviews });
+  } catch (err) {
+    next(err);
   }
 };
 

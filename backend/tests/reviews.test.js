@@ -61,19 +61,23 @@ describe('Review API', () => {
       .send({ topicId, price: 100, durationMinutes: 60 });
     expertiseId = expertiseRes.body.expertise.id;
     // Create a slot
-    const start = new Date(Date.now() + 3600000).toISOString();
-    const end = new Date(Date.now() + 7200000).toISOString();
+    const start = new Date(Date.now() + 3600000).toISOString(); // 1 hour in future
+    const end = new Date(Date.now() + 7200000).toISOString();   // 2 hours in future
     const slotRes = await request(app)
       .post('/api/mentors/availability')
       .set('Authorization', `Bearer ${mentorToken}`)
       .send({ startDatetime: start, endDatetime: end });
     const slotId = slotRes.body.slot.id;
+    const slotMentorId = slotRes.body.slot.mentorId;
+    console.log('Mentor ID:', mentorId);
+    console.log('Expertise ID:', expertiseId);
+    console.log('Slot:', slotRes.body.slot);
     // Create booking
     const bookingRes = await request(app)
       .post('/api/bookings')
       .set('Authorization', `Bearer ${menteeToken}`)
       .send({
-        mentorId,
+        mentorId: slotMentorId, // Use mentorId from slot
         mentorExpertiseId: expertiseId,
         availabilitySlotId: slotId,
         startDatetime: start,
@@ -81,12 +85,23 @@ describe('Review API', () => {
         totalPrice: 100,
         menteeNotes: 'Review test'
       });
-    bookingId = bookingRes.body.booking.id;
+    console.log('Booking creation status:', bookingRes.statusCode);
+    console.log('Booking creation body:', bookingRes.body);
+    bookingId = bookingRes.body.booking && bookingRes.body.booking.id;
     // Approve booking
     await request(app)
       .patch(`/api/bookings/${bookingId}/approve`)
       .set('Authorization', `Bearer ${mentorToken}`);
-    // Fast-forward time: mark booking as completed
+    // Fast-forward booking times to the past so it can be completed
+    const prisma = require('../src/config/database').prisma;
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+        startDatetime: new Date(Date.now() - 7200000), // 2 hours ago
+        endDatetime: new Date(Date.now() - 3600000)    // 1 hour ago
+      }
+    });
+    // Mark booking as completed
     await request(app)
       .patch(`/api/bookings/${bookingId}/complete`)
       .set('Authorization', `Bearer ${mentorToken}`);
@@ -153,14 +168,108 @@ describe('Review API', () => {
   });
 
   test('public can view mentor reviews', async () => {
+    // Register and login mentor
+    const mentorEmail = 'mentor' + Date.now() + Math.random() + '@test.com';
+    await request(app)
+      .post('/api/auth/register')
+      .send({ email: mentorEmail, password: 'TestPassword123!', name: 'Mentor User', role: 'mentor' });
+    const mentorLoginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: mentorEmail, password: 'TestPassword123!' });
+    const mentorToken = mentorLoginRes.body.token;
+
+    // Register and login mentee
+    const menteeEmail = 'mentee' + Date.now() + Math.random() + '@test.com';
+    await request(app)
+      .post('/api/auth/register')
+      .send({ email: menteeEmail, password: 'TestPassword123!', name: 'Mentee User', role: 'mentee' });
+    const menteeLoginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ email: menteeEmail, password: 'TestPassword123!' });
+    const menteeToken = menteeLoginRes.body.token;
+
+    // Create mentor profile
+    await request(app)
+      .put('/api/mentors/profile')
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send({ company: 'TestCo' });
+    // Create mentee profile
+    await request(app)
+      .put('/api/mentees/profile')
+      .set('Authorization', `Bearer ${menteeToken}`)
+      .send({});
+    const menteeProfileRes = await request(app)
+      .get('/api/mentees/profile')
+      .set('Authorization', `Bearer ${menteeToken}`);
+    const menteeProfileId = menteeProfileRes.body.mentee.id;
+
+    // Create topic
+    const topicRes = await request(app)
+      .post('/api/topics')
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send({ name: 'ReviewTopic' + Date.now(), description: 'desc' });
+    const topicId = topicRes.body.topic.id;
+
+    // Create expertise
+    const expertiseRes = await request(app)
+      .post('/api/mentors/expertise')
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send({ topicId, price: 100, durationMinutes: 60 });
+    const expertiseId = expertiseRes.body.expertise.id;
+
+    // Create slot
+    const start = new Date(Date.now() + 3600000).toISOString();
+    const end = new Date(Date.now() + 7200000).toISOString();
+    const slotRes = await request(app)
+      .post('/api/mentors/availability')
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send({ startDatetime: start, endDatetime: end });
+    const slotId = slotRes.body.slot.id;
+    const mentorProfileId = slotRes.body.slot.mentorId;
+
+    // Create booking
+    const bookingRes = await request(app)
+      .post('/api/bookings')
+      .set('Authorization', `Bearer ${menteeToken}`)
+      .send({
+        mentorId: slotRes.body.slot.mentorId,
+        mentorExpertiseId: expertiseId,
+        availabilitySlotId: slotId,
+        startDatetime: start,
+        endDatetime: end,
+        totalPrice: 100,
+        menteeNotes: 'Review test'
+      });
+    const bookingId = bookingRes.body.booking.id;
+
+    // Approve booking
+    await request(app)
+      .patch(`/api/bookings/${bookingId}/approve`)
+      .set('Authorization', `Bearer ${mentorToken}`);
+
+    // Set booking times in the past so it can be completed
+    const prisma = global.__PRISMA__;
+    const pastStart = new Date(Date.now() - 7200000).toISOString();
+    const pastEnd = new Date(Date.now() - 3600000).toISOString();
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: { startDatetime: pastStart, endDatetime: pastEnd }
+    });
+
+    // Complete booking
+    await request(app)
+      .patch(`/api/bookings/${bookingId}/complete`)
+      .set('Authorization', `Bearer ${mentorToken}`);
+
     // Create review
     await request(app)
       .post('/api/reviews')
       .set('Authorization', `Bearer ${menteeToken}`)
-      .send({ bookingId, rating: 4, comment: 'Good!' });
+      .send({ bookingId, rating: 5, comment: 'Great session!' });
+
     // Public view
     const res = await request(app)
-      .get(`/api/reviews/mentor/${mentorId}`);
+      .get(`/api/reviews/mentor/${mentorProfileId}`);
     expect(res.statusCode).toBe(200);
     expect(Array.isArray(res.body.reviews)).toBe(true);
     expect(res.body.reviews.length).toBeGreaterThan(0);
