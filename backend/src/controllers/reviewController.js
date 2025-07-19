@@ -13,11 +13,6 @@ const createReview = async (req, res, next) => {
     
     const { bookingId, rating, comment } = req.body;
 
-    // Validate required fields
-    if (!bookingId || !rating) {
-      return res.status(400).json({ error: 'Missing required fields', code: 'VALIDATION_ERROR' });
-    }
-
     // Check if booking exists and belongs to mentee
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
@@ -46,53 +41,61 @@ const createReview = async (req, res, next) => {
     }
 
     // Create review and update mentor rating in transaction
-    const result = await prisma.$transaction(async (tx) => {
-      // Create review
-      const review = await tx.review.create({
-        data: {
-          bookingId,
-          menteeId,
-          mentorId: booking.mentorId,
-          rating,
-          comment
-        },
-        include: {
-          mentee: {
-            include: {
-              user: {
-                select: {
-                  name: true,
-                  profileImageUrl: true
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        // Create review
+        const review = await tx.review.create({
+          data: {
+            bookingId,
+            menteeId,
+            mentorId: booking.mentorId,
+            rating,
+            comment
+          },
+          include: {
+            mentee: {
+              include: {
+                user: {
+                  select: {
+                    name: true,
+                    profileImageUrl: true
+                  }
                 }
               }
             }
           }
-        }
+        });
+
+        // Update mentor's average rating and total reviews
+        const mentorReviews = await tx.review.findMany({
+          where: { mentorId: booking.mentorId }
+        });
+
+        const totalRating = mentorReviews.reduce((sum, r) => sum + r.rating, 0);
+        const averageRating = mentorReviews.length === 0 ? 0 : totalRating / mentorReviews.length;
+
+        await tx.mentor.update({
+          where: { id: booking.mentorId },
+          data: {
+            averageRating,
+            totalReviews: mentorReviews.length
+          }
+        });
+
+        return review;
       });
 
-      // Update mentor's average rating and total reviews
-      const mentorReviews = await tx.review.findMany({
-        where: { mentorId: booking.mentorId }
+      res.status(201).json({ 
+        message: 'Review created successfully',
+        review: result 
       });
-
-      const totalRating = mentorReviews.reduce((sum, r) => sum + r.rating, 0);
-      const averageRating = totalRating / mentorReviews.length;
-
-      await tx.mentor.update({
-        where: { id: booking.mentorId },
-        data: {
-          averageRating,
-          totalReviews: mentorReviews.length
-        }
-      });
-
-      return review;
-    });
-
-    res.status(201).json({ 
-      message: 'Review created successfully',
-      review: result 
-    });
+    } catch (error) {
+      // Handle unique constraint violation (race condition)
+      if (error.code === 'P2002' && error.meta && error.meta.target && error.meta.target.includes('bookingId')) {
+        return res.status(409).json({ error: 'Review already exists for this booking', code: 'REVIEW_EXISTS' });
+      }
+      throw error;
+    }
   } catch (error) {
     console.error('Create review error:', error);
     error.statusCode = 500;

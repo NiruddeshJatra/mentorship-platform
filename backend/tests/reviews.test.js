@@ -93,7 +93,7 @@ describe('Review API', () => {
       .patch(`/api/bookings/${bookingId}/approve`)
       .set('Authorization', `Bearer ${mentorToken}`);
     // Fast-forward booking times to the past so it can be completed
-    const prisma = require('../src/config/database').prisma;
+    const { prisma } = require('../src/config/database');
     await prisma.booking.update({
       where: { id: bookingId },
       data: {
@@ -248,7 +248,7 @@ describe('Review API', () => {
       .set('Authorization', `Bearer ${mentorToken}`);
 
     // Set booking times in the past so it can be completed
-    const prisma = global.__PRISMA__;
+    const { prisma } = require('../src/config/database');
     const pastStart = new Date(Date.now() - 7200000).toISOString();
     const pastEnd = new Date(Date.now() - 3600000).toISOString();
     await prisma.booking.update({

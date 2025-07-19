@@ -1,6 +1,19 @@
 const { prisma } = require('../config/database');
 const { getUserMentorId, getUserMenteeId } = require('../utils/userHelpers');
 
+// Helper: Check if user is mentor for booking
+function isMentorForBooking(userMentorId, booking) {
+  return booking.mentorId === userMentorId;
+}
+// Helper: Check if user is mentee for booking
+function isMenteeForBooking(userMenteeId, booking) {
+  return booking.menteeId === userMenteeId;
+}
+// Helper: Check booking status
+function requireBookingStatus(booking, status) {
+  return booking.status === status;
+}
+
 // Create a new booking (mentee books a session)
 const createBooking = async (req, res, next) => {
   try {
@@ -102,10 +115,10 @@ const approveBooking = async (req, res, next) => {
     if (!booking) {
       return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
     }
-    if (booking.mentorId !== mentorId) {
+    if (!isMentorForBooking(mentorId, booking)) {
       return res.status(403).json({ error: 'Not authorized to approve this booking', code: 'NOT_AUTHORIZED' });
     }
-    if (booking.status !== 'PENDING') {
+    if (!requireBookingStatus(booking, 'PENDING')) {
       return res.status(400).json({ error: 'Only pending bookings can be approved', code: 'INVALID_STATUS' });
     }
 
@@ -143,10 +156,10 @@ const rejectBooking = async (req, res, next) => {
     if (!booking) {
       return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
     }
-    if (booking.mentorId !== mentorId) {
+    if (!isMentorForBooking(mentorId, booking)) {
       return res.status(403).json({ error: 'Not authorized to reject this booking', code: 'NOT_AUTHORIZED' });
     }
-    if (booking.status !== 'PENDING') {
+    if (!requireBookingStatus(booking, 'PENDING')) {
       return res.status(400).json({ error: 'Only pending bookings can be rejected', code: 'INVALID_STATUS' });
     }
 
@@ -324,11 +337,11 @@ const completeBooking = async (req, res, next) => {
       return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
     }
     
-    if (booking.mentorId !== mentorId) {
+    if (!isMentorForBooking(mentorId, booking)) {
       return res.status(403).json({ error: 'Not authorized to complete this booking', code: 'NOT_AUTHORIZED' });
     }
     
-    if (booking.status !== 'CONFIRMED') {
+    if (!requireBookingStatus(booking, 'CONFIRMED')) {
       return res.status(400).json({ error: 'Only confirmed bookings can be completed', code: 'INVALID_STATUS' });
     }
 

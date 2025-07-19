@@ -38,6 +38,10 @@ const createTopic = async (req, res, next) => {
     });
     res.status(201).json({ message: 'Topic created', topic });
   } catch (error) {
+    // Handle unique constraint violation (race condition)
+    if (error.code === 'P2002' && error.meta && error.meta.target && error.meta.target.includes('name')) {
+      return res.status(409).json({ error: 'Topic already exists', code: 'TOPIC_EXISTS' });
+    }
     next(error);
   }
 };
