@@ -1,0 +1,82 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+@layer base {
+  :root {
+    --neural-primary: 99 102 241;
+    --growth-primary: 16 185 129;
+    --forest-dark: 6 78 59;
+  }
+
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-slate-50 text-slate-900 font-sans;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@layer components {
+  .neural-connection {
+    position: relative;
+  }
+  
+  .neural-connection::before {
+    content: '';
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom, transparent, rgba(99, 102, 241, 0.3), transparent);
+    left: 50%;
+    transform: translateX(-50%);
+    animation: neural-pulse 2s ease-in-out infinite;
+  }
+
+  .growth-node {
+    @apply relative overflow-hidden rounded-full;
+  }
+
+  .growth-node::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: conic-gradient(from 0deg, #10b981, #6366f1, #10b981);
+    border-radius: inherit;
+    z-index: -1;
+    animation: spin 3s linear infinite;
+  }
+
+  .btn-neural {
+    @apply relative px-6 py-3 font-medium text-white rounded-lg transition-all duration-300;
+    @apply bg-gradient-to-r from-neural-500 to-growth-500;
+    @apply hover:shadow-lg hover:shadow-neural-500/25 hover:scale-105;
+    @apply active:scale-95;
+  }
+
+  .btn-neural::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+
+  .btn-neural:hover::before {
+    transform: translateX(100%);
+  }
+}
