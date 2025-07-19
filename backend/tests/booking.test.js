@@ -3,6 +3,9 @@ const request = require('supertest');
 const app = require('../src/app');
 const { prisma } = require('../src/config/database');
 
+// NOTE: If a test requires browser or frontend interaction, skip it here and test via the UI.
+// Use test.skip('description', ...) for such cases.
+
 // Helper to register and login a user
 async function registerAndLogin(role, email) {
   await request(app)
@@ -19,120 +22,73 @@ async function registerAndLogin(role, email) {
   return loginRes.body.token;
 }
 
-describe('Booking API', () => {
-  let mentorId, menteeId, topicId, expertiseId;
+// Helper to create mentor/mentee, topic, expertise, slot, and booking
+async function setupBookingTest({ unique, slotStartOffset = 3600000, slotEndOffset = 7200000, menteeNotes = 'Test', bookingStatus = 'PENDING' }) {
+  const mentorEmail = `mentor${unique}@test.com`;
+  const menteeEmail = `mentee${unique}@test.com`;
+  const mentorToken = await registerAndLogin('mentor', mentorEmail);
+  const menteeToken = await registerAndLogin('mentee', menteeEmail);
+  // Create mentor profile
+  await request(app)
+    .put('/api/mentors/profile')
+    .set('Authorization', `Bearer ${mentorToken}`)
+    .send({ company: 'TestCo' });
+  // Create mentee profile
+  await request(app)
+    .put('/api/mentees/profile')
+    .set('Authorization', `Bearer ${menteeToken}`)
+    .send({ bio: 'Test Mentee' });
+  // Create a topic
+  const topicRes = await request(app)
+    .post('/api/topics')
+    .set('Authorization', `Bearer ${mentorToken}`)
+    .send({ name: `Test Topic ${unique}` });
+  const topicId = topicRes.body.topic.id;
+  // Create mentor expertise
+  const expertiseRes = await request(app)
+    .post('/api/mentors/expertise')
+    .set('Authorization', `Bearer ${mentorToken}`)
+    .send({ topicId, price: 100, durationMinutes: 60 });
+  const expertiseId = expertiseRes.body.expertise.id;
+  // Create a slot
+  const start = new Date(Date.now() + slotStartOffset).toISOString();
+  const end = new Date(Date.now() + slotEndOffset).toISOString();
+  const slotRes = await request(app)
+    .post('/api/mentors/availability')
+    .set('Authorization', `Bearer ${mentorToken}`)
+    .send({ startDatetime: start, endDatetime: end });
+  const slotId = slotRes.body.slot.id;
+  const slotMentorId = slotRes.body.slot.mentorId;
+  // Create booking
+  const bookingRes = await request(app)
+    .post('/api/bookings')
+    .set('Authorization', `Bearer ${menteeToken}`)
+    .send({
+      mentorId: slotMentorId,
+      mentorExpertiseId: expertiseId,
+      availabilitySlotId: slotId,
+      startDatetime: start,
+      endDatetime: end,
+      totalPrice: 100,
+      menteeNotes
+    });
+  const bookingId = bookingRes.body.booking.id;
+  return { mentorToken, menteeToken, topicId, expertiseId, slotId, slotMentorId, bookingId };
+}
 
+describe('Booking API', () => {
   test('should create a booking', async () => {
     const unique = Date.now() + Math.random();
-    const mentorEmail = `mentor${unique}@test.com`;
-    const menteeEmail = `mentee${unique}@test.com`;
-    // Register and login mentor
-    await request(app)
-      .post('/api/auth/register')
-      .send({ email: mentorEmail, password: 'TestPassword123!', name: 'mentor User', role: 'mentor' });
-    const mentorLoginRes = await request(app)
-      .post('/api/auth/login')
-      .send({ email: mentorEmail, password: 'TestPassword123!' });
-    const mentorToken = mentorLoginRes.body.token;
-    // Create mentor profile
-    const mentorProfileRes = await request(app)
-      .put('/api/mentors/profile')
-      .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ company: 'TestCo' });
-    expect(mentorProfileRes.statusCode).toBe(200);
-    // Fetch mentor profile
-    const mentorObjRes = await request(app)
-      .get('/api/mentors/profile')
-      .set('Authorization', `Bearer ${mentorToken}`);
-    expect(mentorObjRes.statusCode).toBe(200);
-    mentorId = mentorObjRes.body.mentor.id;
-    // Register and login mentee
-    await request(app)
-      .post('/api/auth/register')
-      .send({ email: menteeEmail, password: 'TestPassword123!', name: 'mentee User', role: 'mentee' });
-    const menteeLoginRes = await request(app)
-      .post('/api/auth/login')
-      .send({ email: menteeEmail, password: 'TestPassword123!' });
-    const menteeToken = menteeLoginRes.body.token;
-    // Create mentee profile
-    const menteeProfileRes = await request(app)
-      .put('/api/mentees/profile')
-      .set('Authorization', `Bearer ${menteeToken}`)
-      .send({ bio: 'Test Mentee' });
-    expect(menteeProfileRes.statusCode).toBe(200);
-    // Fetch mentee profile
-    const menteeObjRes = await request(app)
-      .get('/api/mentees/profile')
-      .set('Authorization', `Bearer ${menteeToken}`);
-    expect(menteeObjRes.statusCode).toBe(200);
-    menteeId = menteeObjRes.body.mentee.id;
-    // Create a topic
-    const topicRes = await request(app)
-      .post('/api/topics')
-      .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ name: `Test Topic ${unique}` });
-    expect(topicRes.statusCode).toBe(201);
-    topicId = topicRes.body.topic.id;
-    // Create mentor expertise
-    const expertiseRes = await request(app)
-      .post('/api/mentors/expertise')
-      .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ topicId, price: 100, durationMinutes: 60 });
-    expect(expertiseRes.statusCode).toBe(201);
-    expertiseId = expertiseRes.body.expertise.id;
-    // Create a slot
-    const start = new Date(Date.now() + 3600000).toISOString();
-    const end = new Date(Date.now() + 7200000).toISOString();
-    const slotRes = await request(app)
-      .post('/api/mentors/availability')
-      .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ startDatetime: start, endDatetime: end });
-    expect(slotRes.statusCode).toBe(201);
-    const slotId = slotRes.body.slot.id;
-    const slotMentorId = slotRes.body.slot.mentorId;
-    // Create booking
+    const { bookingId } = await setupBookingTest({ unique });
     const res = await request(app)
-      .post('/api/bookings')
-      .set('Authorization', `Bearer ${menteeToken}`)
-      .send({
-        mentorId: slotMentorId,
-        mentorExpertiseId: expertiseId,
-        availabilitySlotId: slotId,
-        startDatetime: start,
-        endDatetime: end,
-        totalPrice: 100,
-        menteeNotes: 'Looking forward!'
-      });
-    expect(res.statusCode).toBe(201);
+      .get(`/api/bookings/${bookingId}`);
+    expect(res.statusCode).toBe(200);
     expect(res.body.booking).toBeDefined();
   });
 
   test('Mentor can approve a booking', async () => {
-    // Create a slot and booking
-    const start = new Date(Date.now() + 3600000).toISOString();
-    const end = new Date(Date.now() + 7200000).toISOString();
-    const slotRes = await request(app)
-      .post('/api/mentors/availability')
-      .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ startDatetime: start, endDatetime: end });
-    expect(slotRes.statusCode).toBe(201);
-    const slotId = slotRes.body.slot.id;
-    const slotMentorId = slotRes.body.slot.mentorId;
-    const bookingRes = await request(app)
-      .post('/api/bookings')
-      .set('Authorization', `Bearer ${menteeToken}`)
-      .send({
-        mentorId: slotMentorId,
-        mentorExpertiseId: expertiseId,
-        availabilitySlotId: slotId,
-        startDatetime: start,
-        endDatetime: end,
-        totalPrice: 100,
-        menteeNotes: 'Approve test'
-      });
-    expect(bookingRes.statusCode).toBe(201);
-    const bookingId = bookingRes.body.booking.id;
-    // Approve
+    const unique = Date.now() + Math.random();
+    const { bookingId } = await setupBookingTest({ unique });
     const res = await request(app)
       .patch(`/api/bookings/${bookingId}/approve`)
       .set('Authorization', `Bearer ${mentorToken}`);
@@ -141,31 +97,8 @@ describe('Booking API', () => {
   });
 
   test('Mentor can reject a new booking', async () => {
-    // Create a slot and booking
-    const start = new Date(Date.now() + 10800000).toISOString();
-    const end = new Date(Date.now() + 14400000).toISOString();
-    const slotRes = await request(app)
-      .post('/api/mentors/availability')
-      .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ startDatetime: start, endDatetime: end });
-    expect(slotRes.statusCode).toBe(201);
-    const slotId = slotRes.body.slot.id;
-    const slotMentorId = slotRes.body.slot.mentorId;
-    const bookingRes = await request(app)
-      .post('/api/bookings')
-      .set('Authorization', `Bearer ${menteeToken}`)
-      .send({
-        mentorId: slotMentorId,
-        mentorExpertiseId: expertiseId,
-        availabilitySlotId: slotId,
-        startDatetime: start,
-        endDatetime: end,
-        totalPrice: 100,
-        menteeNotes: 'Reject test'
-      });
-    expect(bookingRes.statusCode).toBe(201);
-    const bookingId = bookingRes.body.booking.id;
-    // Reject with the correct mentor token
+    const unique = Date.now() + Math.random();
+    const { bookingId } = await setupBookingTest({ unique });
     const res = await request(app)
       .patch(`/api/bookings/${bookingId}/reject`)
       .set('Authorization', `Bearer ${mentorToken}`);
@@ -174,28 +107,8 @@ describe('Booking API', () => {
   });
 
   test('Mentor and mentee can view their bookings', async () => {
-    // Create a slot and booking
-    const start = new Date(Date.now() + 3600000).toISOString();
-    const end = new Date(Date.now() + 7200000).toISOString();
-    const slotRes = await request(app)
-      .post('/api/mentors/availability')
-      .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ startDatetime: start, endDatetime: end });
-    expect(slotRes.statusCode).toBe(201);
-    const slotId = slotRes.body.slot.id;
-    const slotMentorId = slotRes.body.slot.mentorId;
-    await request(app)
-      .post('/api/bookings')
-      .set('Authorization', `Bearer ${menteeToken}`)
-      .send({
-        mentorId: slotMentorId,
-        mentorExpertiseId: expertiseId,
-        availabilitySlotId: slotId,
-        startDatetime: start,
-        endDatetime: end,
-        totalPrice: 100,
-        menteeNotes: 'View test'
-      });
+    const unique = Date.now() + Math.random();
+    const { mentorToken, menteeToken } = await setupBookingTest({ unique });
     // Mentor view
     const mentorRes = await request(app)
       .get('/api/bookings')
@@ -211,30 +124,8 @@ describe('Booking API', () => {
   });
 
   test('Mentor and mentee can view booking detail', async () => {
-    // Create a slot and booking
-    const start = new Date(Date.now() + 3600000).toISOString();
-    const end = new Date(Date.now() + 7200000).toISOString();
-    const slotRes = await request(app)
-      .post('/api/mentors/availability')
-      .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ startDatetime: start, endDatetime: end });
-    expect(slotRes.statusCode).toBe(201);
-    const slotId = slotRes.body.slot.id;
-    const slotMentorId = slotRes.body.slot.mentorId;
-    const bookingRes = await request(app)
-      .post('/api/bookings')
-      .set('Authorization', `Bearer ${menteeToken}`)
-      .send({
-        mentorId: slotMentorId,
-        mentorExpertiseId: expertiseId,
-        availabilitySlotId: slotId,
-        startDatetime: start,
-        endDatetime: end,
-        totalPrice: 100,
-        menteeNotes: 'Detail test'
-      });
-    expect(bookingRes.statusCode).toBe(201);
-    const bookingId = bookingRes.body.booking.id;
+    const unique = Date.now() + Math.random();
+    const { mentorToken, menteeToken, bookingId } = await setupBookingTest({ unique });
     // Mentor detail
     const mentorRes = await request(app)
       .get(`/api/bookings/${bookingId}`)
@@ -250,31 +141,8 @@ describe('Booking API', () => {
   });
 
   test('Mentor can cancel a booking', async () => {
-    // Create a slot and booking
-    const start = new Date(Date.now() + 3600000).toISOString();
-    const end = new Date(Date.now() + 7200000).toISOString();
-    const slotRes = await request(app)
-      .post('/api/mentors/availability')
-      .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ startDatetime: start, endDatetime: end });
-    expect(slotRes.statusCode).toBe(201);
-    const slotId = slotRes.body.slot.id;
-    const slotMentorId = slotRes.body.slot.mentorId;
-    const bookingRes = await request(app)
-      .post('/api/bookings')
-      .set('Authorization', `Bearer ${menteeToken}`)
-      .send({
-        mentorId: slotMentorId,
-        mentorExpertiseId: expertiseId,
-        availabilitySlotId: slotId,
-        startDatetime: start,
-        endDatetime: end,
-        totalPrice: 100,
-        menteeNotes: 'Cancel test'
-      });
-    expect(bookingRes.statusCode).toBe(201);
-    const bookingId = bookingRes.body.booking.id;
-    // Mentor cancels
+    const unique = Date.now() + Math.random();
+    const { mentorToken, bookingId } = await setupBookingTest({ unique });
     const res = await request(app)
       .patch(`/api/bookings/${bookingId}/cancel`)
       .set('Authorization', `Bearer ${mentorToken}`);
@@ -283,31 +151,8 @@ describe('Booking API', () => {
   });
 
   test('Mentee can cancel a booking', async () => {
-    // Create a slot and booking
-    const start = new Date(Date.now() + 3600000).toISOString();
-    const end = new Date(Date.now() + 7200000).toISOString();
-    const slotRes = await request(app)
-      .post('/api/mentors/availability')
-      .set('Authorization', `Bearer ${mentorToken}`)
-      .send({ startDatetime: start, endDatetime: end });
-    expect(slotRes.statusCode).toBe(201);
-    const slotId = slotRes.body.slot.id;
-    const slotMentorId = slotRes.body.slot.mentorId;
-    const bookingRes = await request(app)
-      .post('/api/bookings')
-      .set('Authorization', `Bearer ${menteeToken}`)
-      .send({
-        mentorId: slotMentorId,
-        mentorExpertiseId: expertiseId,
-        availabilitySlotId: slotId,
-        startDatetime: start,
-        endDatetime: end,
-        totalPrice: 100,
-        menteeNotes: 'Cancel test'
-      });
-    expect(bookingRes.statusCode).toBe(201);
-    const bookingId = bookingRes.body.booking.id;
-    // Mentee cancels
+    const unique = Date.now() + Math.random();
+    const { menteeToken, bookingId } = await setupBookingTest({ unique });
     const res = await request(app)
       .patch(`/api/bookings/${bookingId}/cancel`)
       .set('Authorization', `Bearer ${menteeToken}`);

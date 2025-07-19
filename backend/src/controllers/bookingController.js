@@ -1,6 +1,19 @@
 const { prisma } = require('../config/database');
 const { getUserMentorId, getUserMenteeId } = require('../utils/userHelpers');
 
+// Helper: Check if user is mentor for booking
+function isMentorForBooking(userMentorId, booking) {
+  return booking.mentorId === userMentorId;
+}
+// Helper: Check if user is mentee for booking
+function isMenteeForBooking(userMenteeId, booking) {
+  return booking.menteeId === userMenteeId;
+}
+// Helper: Check booking status
+function requireBookingStatus(booking, status) {
+  return booking.status === status;
+}
+
 // Create a new booking (mentee books a session)
 const createBooking = async (req, res, next) => {
   try {
@@ -102,10 +115,10 @@ const approveBooking = async (req, res, next) => {
     if (!booking) {
       return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
     }
-    if (booking.mentorId !== mentorId) {
+    if (!isMentorForBooking(mentorId, booking)) {
       return res.status(403).json({ error: 'Not authorized to approve this booking', code: 'NOT_AUTHORIZED' });
     }
-    if (booking.status !== 'PENDING') {
+    if (!requireBookingStatus(booking, 'PENDING')) {
       return res.status(400).json({ error: 'Only pending bookings can be approved', code: 'INVALID_STATUS' });
     }
 
@@ -143,10 +156,10 @@ const rejectBooking = async (req, res, next) => {
     if (!booking) {
       return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
     }
-    if (booking.mentorId !== mentorId) {
+    if (!isMentorForBooking(mentorId, booking)) {
       return res.status(403).json({ error: 'Not authorized to reject this booking', code: 'NOT_AUTHORIZED' });
     }
-    if (booking.status !== 'PENDING') {
+    if (!requireBookingStatus(booking, 'PENDING')) {
       return res.status(400).json({ error: 'Only pending bookings can be rejected', code: 'INVALID_STATUS' });
     }
 
@@ -302,6 +315,61 @@ const cancelBooking = async (req, res, next) => {
   }
 };
 
+// Complete a booking (mentor only)
+const completeBooking = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const mentorId = await getUserMentorId(userId);
+    
+    if (!mentorId) {
+      return res.status(404).json({ error: 'Mentor profile not found', code: 'PROFILE_NOT_FOUND' });
+    }
+    
+    const bookingId = req.params.id;
+
+    // Find booking and check permissions
+    const booking = await prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { mentor: true, availabilitySlot: true }
+    });
+    
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found', code: 'BOOKING_NOT_FOUND' });
+    }
+    
+    if (!isMentorForBooking(mentorId, booking)) {
+      return res.status(403).json({ error: 'Not authorized to complete this booking', code: 'NOT_AUTHORIZED' });
+    }
+    
+    if (!requireBookingStatus(booking, 'CONFIRMED')) {
+      return res.status(400).json({ error: 'Only confirmed bookings can be completed', code: 'INVALID_STATUS' });
+    }
+
+    // Check if session time has passed
+    const now = new Date();
+    if (booking.endDatetime > now) {
+      return res.status(400).json({ error: 'Cannot complete booking before session end time', code: 'SESSION_NOT_ENDED' });
+    }
+
+    // Complete booking
+    const updatedBooking = await prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: 'COMPLETED' },
+      include: { mentor: true, mentee: true, mentorExpertise: true, availabilitySlot: true }
+    });
+
+    res.json({ 
+      message: 'Booking completed successfully',
+      booking: updatedBooking 
+    });
+  } catch (error) {
+    console.error('Complete booking error:', error);
+    error.statusCode = 500;
+    error.code = 'COMPLETE_BOOKING_ERROR';
+    next(error);
+  }
+};
+
 module.exports = {
   createBooking,
   approveBooking,
@@ -309,4 +377,5 @@ module.exports = {
   listBookings,
   getBookingDetail,
   cancelBooking,
+  completeBooking
 };

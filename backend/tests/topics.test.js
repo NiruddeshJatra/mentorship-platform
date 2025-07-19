@@ -64,6 +64,13 @@ describe('Topics API', () => {
   });
 
   test('should reject duplicate topic creation', async () => {
+    const topicName = 'Duplicate Topic ' + Date.now();
+    // First creation
+    await request(app)
+      .post('/api/topics')
+      .set('Authorization', `Bearer ${mentorToken}`)
+      .send({ name: topicName, description: 'First topic.' });
+    // Duplicate creation
     const res = await request(app)
       .post('/api/topics')
       .set('Authorization', `Bearer ${mentorToken}`)

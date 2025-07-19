@@ -15,6 +15,7 @@ const mentorRoutes = require('./routes/mentors');
 const menteeRoutes = require('./routes/mentees');
 const bookingRoutes = require('./routes/bookings');
 const topicRoutes = require('./routes/topics');
+const reviewRoutes = require('./routes/reviews');
 
 require('dotenv').config();
 
@@ -97,6 +98,7 @@ app.use('/api/mentors', mentorRoutes);
 app.use('/api/mentees', menteeRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/topics', topicRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // 404 handler
 app.use('*', (req, res) => {
