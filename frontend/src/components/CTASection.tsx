@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { NeuralNetwork } from './NeuralNetwork';
-import { ArrowRight, Sparkles, Zap, Users, Rocket } from 'lucide-react';
+import { ArrowRight, Sparkles, Users, Rocket } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const CTASection: React.FC = () => {
   return (
@@ -35,19 +36,23 @@ export const CTASection: React.FC = () => {
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16">
-            <Button className="cta-button group text-xl px-12 py-6">
-              <Rocket className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
-              Start Your Journey
-              <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
+            <Button asChild className="cta-button group text-xl px-12 py-6">
+              <Link to="/mentors" aria-label="Start Your Journey">
+                <Rocket className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
+                Start Your Journey
+                <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
+              </Link>
             </Button>
-            
             <Button 
+              asChild
               variant="outline" 
-              className="relative overflow-hidden px-12 py-6 text-xl font-semibold rounded-2xl border-2 border-neural-primary text-neural-primary hover:bg-neural-primary hover:text-neural-dark transition-all duration-300 group"
+              className="relative px-12 py-6 text-xl font-semibold rounded-2xl border-2 border-neural-primary text-neural-primary hover:bg-transparent hover:text-neural-primary transition-all duration-300 group overflow-visible"
             >
-              <Users className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
-              <span className="relative z-10">Become a Mentor</span>
-              <div className="absolute inset-0 bg-neural-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left" />
+              <Link to="/mentors/apply" aria-label="Become a Mentor" className="relative flex items-center">
+                <Users className="w-6 h-6 mr-3 group-hover:scale-110 transition-transform" />
+                <span className="relative z-10">Become a Mentor</span>
+                <span className="absolute left-0 -bottom-1 w-full h-0.5 bg-neural-primary scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left rounded-full" />
+              </Link>
             </Button>
           </div>
         </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { NeuralNetwork } from './NeuralNetwork';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
 
 const topics = [
@@ -37,6 +38,7 @@ export const HeroSection: React.FC = () => {
   const [charIndex, setCharIndex] = useState(0);
   const [deleting, setDeleting] = useState(false);
   const typingTimeout = useRef<NodeJS.Timeout | null>(null);
+  const navigate = useNavigate();
 
   // Typing animation effect
   useEffect(() => {
@@ -46,32 +48,34 @@ export const HeroSection: React.FC = () => {
       typingTimeout.current = setTimeout(() => {
         setDisplayed(currentTopic.slice(0, charIndex + 1));
         setCharIndex((c) => c + 1);
-      }, 25); // Even faster typing
+      }, 25);
     } else if (!deleting && charIndex === currentTopic.length) {
       typingTimeout.current = setTimeout(() => {
         setDeleting(true);
-      }, 400); // Even faster pause
+      }, 400);
     } else if (deleting && charIndex > 0) {
       typingTimeout.current = setTimeout(() => {
         setDisplayed(currentTopic.slice(0, charIndex - 1));
         setCharIndex((c) => c - 1);
-      }, 15); // Even faster erasing
+      }, 15);
     } else if (deleting && charIndex === 0) {
       typingTimeout.current = setTimeout(() => {
         setDeleting(false);
         setTopicIndex((i) => (i + 1) % topics.length);
-      }, 100); // Even faster transition
+      }, 100);
     }
     return () => {
       if (typingTimeout.current) clearTimeout(typingTimeout.current);
     };
   }, [charIndex, deleting, topicIndex]);
 
-  // Reset charIndex when topicIndex changes
+  // Reset charIndex when topicIndex changes (no infinite loop)
   useEffect(() => {
     setCharIndex(0);
     setDisplayed('');
     setDeleting(false);
+    // Only run when topicIndex changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [topicIndex]);
 
   return (
@@ -131,7 +135,11 @@ export const HeroSection: React.FC = () => {
           {heroContent[activeTab].subtext}
         </p>
         <div className="flex justify-center">
-          <Button className="bg-gradient-to-r from-[#22675a] to-[#25e1d2] hover:from-[#2bbfae] hover:to-[#36d1c4] text-white px-20 py-6 text-xl font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 min-h-[64px] flex items-center gap-3">
+          <Button
+            className="bg-gradient-to-r from-[#22675a] to-[#25e1d2] hover:from-[#2bbfae] hover:to-[#36d1c4] text-white px-20 py-6 text-xl font-semibold rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 min-h-[64px] flex items-center gap-3"
+            onClick={() => navigate(activeTab === 'mentor' ? '/mentors/apply' : '/mentors')}
+            aria-label={heroContent[activeTab].cta}
+          >
             {heroContent[activeTab].cta}
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75L21 12m0 0l-3.75 5.25M21 12H3" />

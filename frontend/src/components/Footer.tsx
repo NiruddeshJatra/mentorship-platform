@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Linkedin, Twitter, Github, Mail, Shield, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export const Footer: React.FC = () => {
   return (
@@ -50,18 +51,18 @@ export const Footer: React.FC = () => {
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-neural-primary">Platform</h3>
             <div className="space-y-4">
-              <a href="#" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
+              <Link to="/mentors" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
                 Find a Mentor
-              </a>
-              <a href="#" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
+              </Link>
+              <Link to="/mentors/apply" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
                 Become a Mentor
-              </a>
-              <a href="#" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
+              </Link>
+              <Link to="/how-it-works" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
                 How It Works
-              </a>
-              <a href="#" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
+              </Link>
+              <Link to="/testimonials" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg" tabIndex={-1} aria-disabled>
                 Success Stories
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -69,18 +70,18 @@ export const Footer: React.FC = () => {
           <div className="space-y-6">
             <h3 className="text-xl font-semibold text-neural-primary">Support</h3>
             <div className="space-y-4">
-              <a href="#" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
+              <Link to="/help" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg" tabIndex={-1} aria-disabled>
                 Help Center
-              </a>
-              <a href="#" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
+              </Link>
+              <Link to="/contact" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
                 Contact Us
-              </a>
-              <a href="#" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
+              </Link>
+              <Link to="/privacy" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
                 Privacy Policy
-              </a>
-              <a href="#" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
+              </Link>
+              <Link to="/terms" className="block text-foreground hover:text-neural-primary transition-colors duration-300 text-lg">
                 Terms of Service
-              </a>
+              </Link>
             </div>
           </div>
 
@@ -116,15 +117,15 @@ export const Footer: React.FC = () => {
               <span>© 2024 Intellectify.</span>
             </div>
             <div className="flex items-center space-x-6 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-neural-primary transition-colors duration-300">
+              <Link to="/security" className="hover:text-neural-primary transition-colors duration-300" tabIndex={-1} aria-disabled>
                 Security
-              </a>
-              <a href="#" className="hover:text-neural-primary transition-colors duration-300">
+              </Link>
+              <Link to="/accessibility" className="hover:text-neural-primary transition-colors duration-300" tabIndex={-1} aria-disabled>
                 Accessibility
-              </a>
-              <a href="#" className="hover:text-neural-primary transition-colors duration-300">
+              </Link>
+              <Link to="/status" className="hover:text-neural-primary transition-colors duration-300" tabIndex={-1} aria-disabled>
                 Status
-              </a>
+              </Link>
             </div>
           </div>
         </div>

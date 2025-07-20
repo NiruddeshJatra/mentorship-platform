@@ -81,10 +81,6 @@ export const HowItWorksSection: React.FC = () => {
                     <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-neural-accent to-neural-primary flex items-center justify-center organic-shape">
                       <step.icon className="w-8 h-8 text-white" />
                     </div>
-                    {/* Step Number */}
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-neural-growth rounded-full flex items-center justify-center text-sm font-bold text-neural-dark">
-                      {index + 1}
-                    </div>
                   </div>
 
                   <h4 className="text-2xl font-bold mb-4 text-neural-accent">{step.title}</h4>
@@ -128,10 +124,6 @@ export const HowItWorksSection: React.FC = () => {
                   <div className="relative mb-6">
                     <div className="w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-neural-primary to-neural-secondary flex items-center justify-center organic-shape">
                       <step.icon className="w-8 h-8 text-white" />
-                    </div>
-                    {/* Step Number */}
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-neural-highlight rounded-full flex items-center justify-center text-sm font-bold text-neural-dark">
-                      {index + 1}
                     </div>
                   </div>
 

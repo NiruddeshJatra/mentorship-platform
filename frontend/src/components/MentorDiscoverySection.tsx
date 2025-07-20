@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, Star } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Example mentor data (replace with real data/fetch in future)
 const mentors = [
@@ -63,7 +64,7 @@ export const MentorDiscoverySection: React.FC = () => {
         </div>
 
         {/* Search Bar */}
-        <form className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12" role="search" aria-label="Mentor search">
+        <form className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12" role="search" aria-label="Mentor search" onSubmit={e => e.preventDefault()}>
           <div className="relative w-full max-w-md">
             <Input
               type="text"
@@ -75,7 +76,7 @@ export const MentorDiscoverySection: React.FC = () => {
             />
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground w-5 h-5" />
           </div>
-          <Button type="submit" className="px-8 py-3 rounded-xl text-lg font-semibold bg-neural-primary text-white hover:bg-neural-primary/90" tabIndex={-1}>
+          <Button type="submit" className="px-8 py-3 rounded-xl text-lg font-semibold bg-neural-primary text-white" tabIndex={-1} disabled>
             Search
           </Button>
         </form>
@@ -88,31 +89,39 @@ export const MentorDiscoverySection: React.FC = () => {
             </div>
           ) : (
             filteredMentors.map((mentor, idx) => (
-              <Card key={mentor.name} className="flex flex-col items-center p-8 growth-card h-full">
-                <img
-                  src={mentor.image}
-                  alt={mentor.name}
-                  className="w-20 h-20 rounded-full object-cover mb-4 border-4 border-neural-accent shadow-md"
-                  loading="lazy"
-                />
-                <h3 className="text-xl font-bold text-foreground mb-1 font-['Poppins']">{mentor.name}</h3>
-                <div className="text-neural-accent font-medium mb-2">{mentor.title}</div>
-                <div className="flex flex-wrap gap-2 mb-3 justify-center">
-                  {mentor.expertise.map((skill) => (
-                    <span key={skill} className="bg-neural-accent/10 text-neural-accent px-3 py-1 rounded-full text-xs font-semibold">
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-                <div className="flex items-center gap-1 mb-3">
-                  <Star className="w-4 h-4 text-neural-highlight fill-neural-highlight" />
-                  <span className="text-sm font-semibold text-neural-highlight">{mentor.rating}</span>
-                </div>
-                <p className="text-muted-foreground text-center text-sm mb-4">{mentor.bio}</p>
-                <Button className="w-full cta-button mt-auto" aria-label={`Book session with ${mentor.name}`}>
-                  Book Session
-                </Button>
-              </Card>
+              <Link
+                key={mentor.name}
+                to={`/mentor/${encodeURIComponent(mentor.name.toLowerCase().replace(/\s+/g, '-'))}`}
+                aria-label={`View profile of ${mentor.name}`}
+                className="focus:outline-none focus:ring-2 focus:ring-neural-accent rounded-2xl"
+                tabIndex={0}
+              >
+                <Card className="flex flex-col items-center p-8 growth-card h-full cursor-pointer hover:shadow-xl transition-shadow duration-200">
+                  <img
+                    src={mentor.image}
+                    alt={mentor.name}
+                    className="w-20 h-20 rounded-full object-cover mb-4 border-4 border-neural-accent shadow-md"
+                    loading="lazy"
+                  />
+                  <h3 className="text-xl font-bold text-foreground mb-1 font-['Poppins']">{mentor.name}</h3>
+                  <div className="text-neural-accent font-medium mb-2">{mentor.title}</div>
+                  <div className="flex flex-wrap gap-2 mb-3 justify-center">
+                    {mentor.expertise.map((skill) => (
+                      <span key={skill} className="bg-neural-accent/10 text-neural-accent px-3 py-1 rounded-full text-xs font-semibold">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-1 mb-3">
+                    <Star className="w-4 h-4 text-neural-highlight fill-neural-highlight" />
+                    <span className="text-sm font-semibold text-neural-highlight">{mentor.rating}</span>
+                  </div>
+                  <p className="text-muted-foreground text-center text-sm mb-4">{mentor.bio}</p>
+                  <Button className="w-full cta-button mt-auto" aria-label={`Book session with ${mentor.name}`} tabIndex={-1}>
+                    Book Session
+                  </Button>
+                </Card>
+              </Link>
             ))
           )}
         </div>

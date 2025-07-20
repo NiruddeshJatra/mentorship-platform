@@ -22,10 +22,49 @@ export const NeuralNetwork: React.FC<{ className?: string }> = ({ className = ''
   const [nodes, setNodes] = useState<Node[]>([]);
   const [connections, setConnections] = useState<Connection[]>([]);
 
+  // Move initNodes outside useEffect
+  const initNodes = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const nodeCount = 25;
+    const newNodes: Node[] = [];
+    const rect = canvas.getBoundingClientRect();
+    for (let i = 0; i < nodeCount; i++) {
+      newNodes.push({
+        x: Math.random() * rect.width,
+        y: Math.random() * rect.height,
+        vx: (Math.random() - 0.5) * 0.2,
+        vy: (Math.random() - 0.5) * 0.2,
+        radius: Math.random() * 3 + 2,
+        connections: []
+      });
+    }
+    // Create connections
+    const newConnections: Connection[] = [];
+    newNodes.forEach((node, i) => {
+      newNodes.forEach((otherNode, j) => {
+        if (i !== j) {
+          const distance = Math.sqrt(
+            Math.pow(node.x - otherNode.x, 2) + Math.pow(node.y - otherNode.y, 2)
+          );
+          if (distance < 150 && Math.random() > 0.8) {
+            node.connections.push(j);
+            newConnections.push({
+              from: i,
+              to: j,
+              opacity: Math.random() * 0.2 + 0.05
+            });
+          }
+        }
+      });
+    });
+    setNodes(newNodes);
+    setConnections(newConnections);
+  };
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -42,47 +81,7 @@ export const NeuralNetwork: React.FC<{ className?: string }> = ({ className = ''
     updateCanvasSize();
     window.addEventListener('resize', updateCanvasSize);
 
-    // Initialize nodes
-    const initNodes = () => {
-      const nodeCount = 25;
-      const newNodes: Node[] = [];
-      const rect = canvas.getBoundingClientRect();
-
-      for (let i = 0; i < nodeCount; i++) {
-        newNodes.push({
-          x: Math.random() * rect.width,
-          y: Math.random() * rect.height,
-          vx: (Math.random() - 0.5) * 0.2,
-          vy: (Math.random() - 0.5) * 0.2,
-          radius: Math.random() * 3 + 2,
-          connections: []
-        });
-      }
-
-      // Create connections
-      const newConnections: Connection[] = [];
-      newNodes.forEach((node, i) => {
-        newNodes.forEach((otherNode, j) => {
-          if (i !== j) {
-            const distance = Math.sqrt(
-              Math.pow(node.x - otherNode.x, 2) + Math.pow(node.y - otherNode.y, 2)
-            );
-            if (distance < 150 && Math.random() > 0.8) {
-              node.connections.push(j);
-              newConnections.push({
-                from: i,
-                to: j,
-                opacity: Math.random() * 0.2 + 0.05
-              });
-            }
-          }
-        });
-      });
-
-      setNodes(newNodes);
-      setConnections(newConnections);
-    };
-
+    // Initialize nodes only once
     initNodes();
 
     // Mouse tracking
@@ -206,7 +205,7 @@ export const NeuralNetwork: React.FC<{ className?: string }> = ({ className = ''
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [nodes, connections]);
+  }, []); // Only run once on mount
 
   // Helper function to calculate distance from point to line
   const distanceToLine = (px: number, py: number, x1: number, y1: number, x2: number, y2: number) => {
