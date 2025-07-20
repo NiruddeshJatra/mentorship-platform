@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { NeuralNetwork } from './NeuralNetwork';
 import { ArrowRight, Sparkles, Users, Rocket } from 'lucide-react';
 import { Link } from 'react-router-dom';
