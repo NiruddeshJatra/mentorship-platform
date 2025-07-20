@@ -6,23 +6,19 @@ import { BenefitsSection } from '@/components/BenefitsSection';
 import { TestimonialsSection } from '@/components/TestimonialsSection';
 import { CTASection } from '@/components/CTASection';
 import { Footer } from '@/components/Footer';
-import { MentorDiscoverySection } from '@/components/MentorDiscoverySection';
 
-function App() {
+const Index = () => {
   return (
-    <>
+    <div className="min-h-screen bg-background">
       <Navigation />
-      <main className="flex flex-col gap-0">
-        <HeroSection />
-        <MentorDiscoverySection />
-        <HowItWorksSection />
-        <BenefitsSection />
-        <TestimonialsSection />
-        <CTASection />
-      </main>
+      <HeroSection />
+      <HowItWorksSection />
+      <BenefitsSection />
+      <TestimonialsSection />
+      <CTASection />
       <Footer />
-    </>
+    </div>
   );
-}
+};
 
-export default App;
+export default Index;
