@@ -8,8 +8,8 @@
 ✅ Step 5: Availability & Booking Logic  
 ✅ Step 6: Reviews, Rescheduling (backend)  
 
-☐ Step 7: Frontend Setup (Vite + React + TypeScript)  
-☐ Step 8: Frontend Homepage/Landing Page  
+✅ Step 7: Frontend Setup (Vite + React + TypeScript)  
+✅ Step 8: Frontend Homepage/Landing Page  
 ☐ Step 9: Frontend Authentication Flows  
 ☐ Step 10: Frontend Onboarding UIs  
 ☐ Step 11: Mentor Availability & Expertise Management (frontend)  
@@ -20,3 +20,5 @@
 ☐ Step 16: Responsive Design & Accessibility (frontend)  
 ☐ Step 17: Testing + Logging  
 ☐ Step 18: Final Polish + Deployment  
+
+> **Next up:** API integration for homepage and dynamic data flows.

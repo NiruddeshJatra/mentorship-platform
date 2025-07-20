@@ -13,7 +13,7 @@ This project is a fullstack mentorship booking platform designed as a take-home 
 | Layer     | Tech               | Rationale                                                                |
 | --------- | ------------------ | ------------------------------------------------------------------------ |
 | Backend   | Node.js + Express  | Rapid development, strong ecosystem                                      |
-| Frontend  | React + TypeScript | Type safety, component reusability, mainstream frontend stack            |
+| Frontend  | React + TypeScript + Tailwind CSS | Type safety, component reusability, modern design system            |
 | ORM       | Prisma             | Schema modeling + migrations + strong TS integration                     |
 | DB        | PostgreSQL         | ACID-compliant relational DB — ideal for bookings and scheduling systems |
 | Auth      | JWT + bcrypt       | Simple and stateless; fine for this scope                                |
@@ -44,12 +44,23 @@ mentorship-platform/
 │   ├── src/
 │   │   ├── assets/
 │   │   ├── components/
-│   │   ├── pages/
+│   │   │   ├── Navigation.tsx
+│   │   │   ├── HeroSection.tsx
+│   │   │   ├── MentorDiscoverySection.tsx
+│   │   │   ├── HowItWorksSection.tsx
+│   │   │   ├── BenefitsSection.tsx
+│   │   │   ├── TestimonialsSection.tsx
+│   │   │   ├── CTASection.tsx
+│   │   │   ├── Footer.tsx
+│   │   │   └── ui/
+│   │   │       ├── button.tsx
+│   │   │       ├── card.tsx
+│   │   │       ├── input.tsx
+│   │   │       └── ... (other UI primitives)
 │   │   ├── App.tsx
-│   │   ├── main.tsx
-│   │   └── vite-env.d.ts
+│   │   ├── index.css
+│   │   └── main.tsx
 │   ├── public/
-│   │   └── vite.svg
 │   ├── index.html
 │   ├── package.json
 │   ├── tsconfig.json
@@ -62,9 +73,6 @@ mentorship-platform/
 ├── docker-compose.yml
 └── README.md
 ```
-
----
-
 ## 🧩 Schema Design & Relationships
 
 ### 1. `users` (shared)
@@ -138,6 +146,17 @@ Stores shared info: `id`, `email`, `password`, `name`, `role`, `bio`, `profile_i
 3. Set availability → `availability_slots`
 4. Approve/reject booking requests
 5. View reviews
+
+---
+
+## 🖌️ Frontend Homepage & Design System
+
+- The homepage is built with a custom theme (deep green, neural accent, cream backgrounds, gradients) and a modular, accessible component system.
+- All sections (Navigation, Hero, Mentor Discovery, How It Works, Benefits, Testimonials, CTA, Footer) are implemented as self-contained components.
+- UI primitives (Button, Card, Input, etc.) are used throughout for consistency.
+- Responsive, accessible, and visually balanced layouts.
+- Custom scroll-triggered animations and interactive effects.
+- See [docs/10-frontend-homepage.md](docs/10-frontend-homepage.md) for a detailed breakdown of the homepage, theme, and design system.
 
 ---
 
@@ -275,7 +294,7 @@ Some potential V2 features:
 
 ---
 
-## Documentation
+## 📚 Documentation
 
 - [00-overview.md](docs/00-overview.md): Project overview and goals
 - [01-planning.md](docs/01-planning.md): Planning and design decisions
@@ -287,6 +306,13 @@ Some potential V2 features:
 - [07-reviews.md](docs/07-reviews.md): Reviews system (review flow)
 - [08-rescheduling.md](docs/08-rescheduling.md): Rescheduling system (rescheduling logic)
 - [09-frontend-setup.md](docs/09-frontend-setup.md): Frontend setup and structure
+- [10-frontend-homepage.md](docs/10-frontend-homepage.md): Frontend homepage, theme, and design system
+
+---
+
+## Roadmap
+
+See [docs/roadmap.md](docs/roadmap.md) for the full development roadmap. Homepage and design system are now complete and API integration is next.
 
 ---
 
