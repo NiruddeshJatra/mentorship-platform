@@ -73,6 +73,7 @@ mentorship-platform/
 ├── docker-compose.yml
 └── README.md
 ```
+
 ## 🧩 Schema Design & Relationships
 
 ### 1. `users` (shared)
@@ -146,6 +147,12 @@ Stores shared info: `id`, `email`, `password`, `name`, `role`, `bio`, `profile_i
 3. Set availability → `availability_slots`
 4. Approve/reject booking requests
 5. View reviews
+
+---
+
+## 🖌️ Frontend Homepage & Design System
+
+=======
 
 ---
 
@@ -291,6 +298,10 @@ Some potential V2 features:
 * Notifications
 * Stripe integration for real payments
 * Group sessions
+
+---
+
+=======
 
 ---
 
