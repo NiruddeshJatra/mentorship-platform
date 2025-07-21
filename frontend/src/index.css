@@ -263,8 +263,14 @@ body {
   }
 }
 
+/* Custom Scroll Animation */
 .fade-slide-in {
-  opacity: 1 !important;
-  transform: translateY(0) !important;
-  transition: opacity 0.7s cubic-bezier(0.4,0,0.2,1), transform 0.7s cubic-bezier(0.4,0,0.2,1);
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.fade-slide-in-visible {
+  opacity: 1;
+  transform: translateY(0);
 }
