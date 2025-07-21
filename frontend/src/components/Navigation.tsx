@@ -45,6 +45,12 @@ export const Navigation: React.FC = () => {
           ) : user ? (
             <>
               <span className={`font-semibold ${logoTextColor}`}>Welcome, {user.name}</span>
+              <Link
+                to={user.role === 'MENTOR' ? '/mentor/dashboard' : '/dashboard'}
+                className={`font-semibold underline ${logoTextColor} hover:text-neural-accent transition-colors`}
+              >
+                Dashboard
+              </Link>
               <Button
                 variant="destructive"
                 onClick={() => {
