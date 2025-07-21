@@ -14,7 +14,8 @@ passport.use(new GoogleStrategy({
         data: {
           email: profile.emails[0].value,
           name: profile.displayName,
-          role: 'mentee', // or let user choose later
+          role: 'MENTEE', // or let user choose later
+          passwordHash: 'oauth_user_no_password', // Placeholder for OAuth users
         }
       });
     }

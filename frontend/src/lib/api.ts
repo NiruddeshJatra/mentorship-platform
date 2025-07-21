@@ -1,7 +1,7 @@
 // src/lib/api.ts
 // API utility for fetch requests with base URL, error handling, and token support
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 export async function apiFetch<T>(
   endpoint: string,

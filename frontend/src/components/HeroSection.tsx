@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { NeuralNetwork } from './NeuralNetwork';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, Sparkles, Zap } from 'lucide-react';
