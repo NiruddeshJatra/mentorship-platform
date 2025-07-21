@@ -8,6 +8,16 @@ This project is a fullstack mentorship booking platform designed as a take-home 
 
 ---
 
+## 🔐 Authentication System (Updated)
+
+- **Email/password registration and login** with JWT-based session management.
+- **Google OAuth** for both login and registration, with seamless JWT integration.
+- **Modern, accessible UI** for all auth pages, with a dedicated layout and clear error handling.
+- **Role-based access** for mentors and mentees, enforced in both backend and frontend.
+- See [`docs/11-auth-frontend-backend.md`](docs/11-auth-frontend-backend.md) for a detailed writeup of the full authentication flow, design, and challenges.
+
+---
+
 ## 🛠️ Tech Stack & Rationale
 
 | Layer     | Tech               | Rationale                                                                |
@@ -16,7 +26,7 @@ This project is a fullstack mentorship booking platform designed as a take-home 
 | Frontend  | React + TypeScript + Tailwind CSS | Type safety, component reusability, modern design system            |
 | ORM       | Prisma             | Schema modeling + migrations + strong TS integration                     |
 | DB        | PostgreSQL         | ACID-compliant relational DB — ideal for bookings and scheduling systems |
-| Auth      | JWT + bcrypt       | Simple and stateless; fine for this scope                                |
+| Auth      | JWT + bcrypt + Google OAuth | Simple, stateless, and user-friendly for demo scope                |
 | Container | Docker (optional)  | Dev parity and consistency across environments                           |
 | Testing   | Jest               | Unit and integration tests for critical paths                            |
 
@@ -152,34 +162,12 @@ Stores shared info: `id`, `email`, `password`, `name`, `role`, `bio`, `profile_i
 
 ## 🖌️ Frontend Homepage & Design System
 
-=======
-
----
-
-## 🖌️ Frontend Homepage & Design System
-
 - The homepage is built with a custom theme (deep green, neural accent, cream backgrounds, gradients) and a modular, accessible component system.
 - All sections (Navigation, Hero, Mentor Discovery, How It Works, Benefits, Testimonials, CTA, Footer) are implemented as self-contained components.
 - UI primitives (Button, Card, Input, etc.) are used throughout for consistency.
 - Responsive, accessible, and visually balanced layouts.
 - Custom scroll-triggered animations and interactive effects.
 - See [docs/10-frontend-homepage.md](docs/10-frontend-homepage.md) for a detailed breakdown of the homepage, theme, and design system.
-
----
-
-## 🔐 Authentication System
-
-The authentication system provides secure registration, login, and role-based access for mentors and mentees. Key features include:
-
-- **JWT-based authentication** for stateless session management.
-- **Role-based access control** (mentor/mentee) enforced via JWT payload and middleware.
-- **Password security**: bcrypt hashing and strong password validation (min 12 chars, upper/lowercase, number, symbol).
-- **Input validation**: Joi schemas with custom rules for password strength and XSS protection (e.g., script tag rejection in names).
-- **Rate limiting**: General and auth-specific rate limiting using `express-rate-limit`, disabled in test environment for reliability.
-- **Consistent error handling**: Standardized error codes/messages for validation, authentication, and JWT expiry.
-- **Comprehensive tests**: Registration, login, validation, JWT expiry, XSS, and edge cases.
-
-See [`docs/04-auth-system.md`](docs/04-auth-system.md) for a detailed writeup, including challenges faced and solutions.
 
 ---
 
@@ -301,29 +289,26 @@ Some potential V2 features:
 
 ---
 
-=======
-
----
-
 ## 📚 Documentation
 
 - [00-overview.md](docs/00-overview.md): Project overview and goals
 - [01-planning.md](docs/01-planning.md): Planning and design decisions
 - [02-schema-design.md](docs/02-schema-design.md): Database schema
 - [03-project-setup.md](docs/03-project-setup.md): Project structure and setup
-- [04-auth-system.md](docs/04-auth-system.md): Authentication system
+- [04-auth-system.md](docs/04-auth-system.md): Authentication system (backend)
 - [05-onboarding-system.md](docs/05-onboarding-system.md): Onboarding system (mentor/mentee onboarding, expertise, availability)
 - [06-booking-and-topics.md](docs/06-booking-and-topics.md): Booking and topics system (booking flow, topics management)
 - [07-reviews.md](docs/07-reviews.md): Reviews system (review flow)
 - [08-rescheduling.md](docs/08-rescheduling.md): Rescheduling system (rescheduling logic)
 - [09-frontend-setup.md](docs/09-frontend-setup.md): Frontend setup and structure
 - [10-frontend-homepage.md](docs/10-frontend-homepage.md): Frontend homepage, theme, and design system
+- [11-auth-frontend-backend.md](docs/11-auth-frontend-backend.md): Full authentication flow (frontend & backend)
 
 ---
 
 ## Roadmap
 
-See [docs/roadmap.md](docs/roadmap.md) for the full development roadmap. Homepage and design system are now complete and API integration is next.
+See [docs/roadmap.md](docs/roadmap.md) for the full development roadmap. Homepage, design system, and authentication are now complete. Next up: dashboard and onboarding UIs.
 
 ---
 

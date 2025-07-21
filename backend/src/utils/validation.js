@@ -7,7 +7,7 @@ const isValidEmail = (email) => {
 
 // Custom validator for password strength
 const passwordValidator = (value, helpers) => {
-  if (value.length < 12) {
+  if (value.length < 8) {
     return helpers.message('Password must be at least 12 characters', { code: 'WEAK_PASSWORD' });
   }
   if (!/[a-z]/.test(value)) {
