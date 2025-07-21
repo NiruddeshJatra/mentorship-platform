@@ -6,12 +6,17 @@ import RegisterPage from './pages/Register';
 import MainLayout from './components/MainLayout';
 import AuthLayout from './components/AuthLayout';
 import OAuthCallbackPage from './pages/OAuthCallback';
+import MenteeDashboard from './pages/MenteeDashboard';
+import MentorDashboard from './pages/MentorDashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
     <Routes>
       <Route element={<MainLayout />}>
         <Route path="/" element={<IndexPage />} />
+        <Route path="/dashboard" element={<ProtectedRoute><MenteeDashboard /></ProtectedRoute>} />
+        <Route path="/mentor/dashboard" element={<ProtectedRoute><MentorDashboard /></ProtectedRoute>} />
         {/* All other main app routes will go here */}
       </Route>
       <Route element={<AuthLayout />}>
