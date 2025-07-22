@@ -8,13 +8,49 @@ This project is a fullstack mentorship booking platform designed as a take-home 
 
 ---
 
-## 🔐 Authentication System (Updated)
+## 🚀 Core Features
 
-- **Email/password registration and login** with JWT-based session management.
-- **Google OAuth** for both login and registration, with seamless JWT integration.
-- **Modern, accessible UI** for all auth pages, with a dedicated layout and clear error handling.
-- **Role-based access** for mentors and mentees, enforced in both backend and frontend.
-- See [`docs/11-auth-frontend-backend.md`](docs/11-auth-frontend-backend.md) for a detailed writeup of the full authentication flow, design, and challenges.
+### ✅ Completed
+- **Authentication & Authorization**
+  - Email/password and Google OAuth
+  - JWT with HTTP-only cookies
+  - Role-based access control
+  - CSRF protection
+
+- **Onboarding System**
+  - Role-specific onboarding flows
+  - Progress tracking
+  - Data validation
+
+- **Dashboard**
+  - Mentor dashboard with session management
+  - Mentee dashboard with learning progress
+  - Upcoming sessions calendar
+  - Performance metrics
+
+- **Profile Management**
+  - Unified profile interface
+  - Role-specific fields
+  - Media uploads
+  - Social integration
+
+### 🚧 In Progress
+- Session booking system
+- Video call integration
+- Payment processing (Stripe)
+- Review and rating system
+
+---
+
+## 🔐 Authentication & User Management (Updated)
+
+- **Unified Authentication**: Combined login/registration flow with email/password and Google OAuth
+- **Secure Session Management**: JWT with HTTP-only cookies and CSRF protection
+- **Role-Based Access**: Enforced for mentors and mentees throughout the application
+- **Onboarding Flows**: Customized, step-by-step onboarding for both mentors and mentees
+- **Profile Management**: Comprehensive profile editing with role-specific fields
+- **Modern UI/UX**: Clean, responsive interface with accessible components
+- **Documentation**: See [`docs/11-auth-frontend-backend.md`](docs/11-auth-frontend-backend.md), [`docs/12-oauth-cors-fixes.md`](docs/12-oauth-cors-fixes.md), and [`docs/13-onboarding-dashboard-profile.md`](docs/13-onboarding-dashboard-profile.md) for detailed documentation.
 
 ---
 
@@ -112,7 +148,7 @@ Stores shared info: `id`, `email`, `password`, `name`, `role`, `bio`, `profile_i
 * Many-to-many between `mentors` and `topics`
 * Extra fields: `duration`, `price`
 
-> 🎯 Combines session type + pricing + expertise in a clean, normalized way.
+> Combines session type + pricing + expertise in a clean, normalized way.
 
 ### 6. `availability_slots`
 
@@ -291,18 +327,20 @@ Some potential V2 features:
 
 ## 📚 Documentation
 
-- [00-overview.md](docs/00-overview.md): Project overview and goals
-- [01-planning.md](docs/01-planning.md): Planning and design decisions
-- [02-schema-design.md](docs/02-schema-design.md): Database schema
-- [03-project-setup.md](docs/03-project-setup.md): Project structure and setup
-- [04-auth-system.md](docs/04-auth-system.md): Authentication system (backend)
-- [05-onboarding-system.md](docs/05-onboarding-system.md): Onboarding system (mentor/mentee onboarding, expertise, availability)
-- [06-booking-and-topics.md](docs/06-booking-and-topics.md): Booking and topics system (booking flow, topics management)
-- [07-reviews.md](docs/07-reviews.md): Reviews system (review flow)
-- [08-rescheduling.md](docs/08-rescheduling.md): Rescheduling system (rescheduling logic)
-- [09-frontend-setup.md](docs/09-frontend-setup.md): Frontend setup and structure
-- [10-frontend-homepage.md](docs/10-frontend-homepage.md): Frontend homepage, theme, and design system
-- [11-auth-frontend-backend.md](docs/11-auth-frontend-backend.md): Full authentication flow (frontend & backend)
+- [Project Overview](docs/00-overview.md)
+- [Planning](docs/01-planning.md)
+- [Schema Design](docs/02-schema-design.md)
+- [Project Setup](docs/03-project-setup.md)
+- [Authentication System](docs/04-auth-system.md)
+- [Onboarding System](docs/05-onboarding-system.md)
+- [Booking & Topics](docs/06-booking-and-topics.md)
+- [Reviews](docs/07-reviews.md)
+- [Rescheduling](docs/08-rescheduling.md)
+- [Frontend Setup](docs/09-frontend-setup.md)
+- [Frontend Homepage](docs/10-frontend-homepage.md)
+- [Auth: Frontend-Backend Integration](docs/11-auth-frontend-backend.md)
+- [OAuth & CORS Fixes](docs/12-oauth-cors-fixes.md)
+- [Onboarding, Dashboard & Profile](docs/13-onboarding-dashboard-profile.md)
 
 ---
 

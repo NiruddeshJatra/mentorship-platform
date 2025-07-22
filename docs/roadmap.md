@@ -11,14 +11,17 @@
 ✅ Step 7: Frontend Setup (Vite + React + TypeScript)  
 ✅ Step 8: Frontend Homepage/Landing Page  
 ✅ Step 9: Frontend Authentication Flows  
-☐ Step 10: Frontend Onboarding UIs  
-☐ Step 11: Mentor Availability & Expertise Management (frontend)  
-☐ Step 12: Booking Flows (frontend)  
-☐ Step 13: Reviews UI (frontend)  
-☐ Step 14: Rescheduling UI (frontend)  
-☐ Step 15: Error Handling, Loading States, Notifications (frontend)  
-☐ Step 16: Responsive Design & Accessibility (frontend)  
-☐ Step 17: Testing + Logging  
-☐ Step 18: Final Polish + Deployment  
+✅ Step 10: OAuth and CORS Fixes  
+✅ Step 11: Frontend Onboarding UIs  
+✅ Step 12: Mentor & Mentee Dashboards  
+✅ Step 13: Profile Management  
+✅ Step 14: UI/UX Modernization  
+☐ Step 15: Booking Flows (frontend)  
+☐ Step 16: Reviews UI (frontend)  
+☐ Step 17: Rescheduling UI (frontend)  
+☐ Step 18: Error Handling, Loading States, Notifications (frontend)  
+☐ Step 19: Responsive Design & Accessibility (frontend)  
+☐ Step 20: Testing + Logging  
+☐ Step 21: Final Polish + Deployment  
 
-> **Next up:** Dashboard and onboarding UIs for mentors and mentees.
+> **Next up:** Implementing the booking and session management flows.
