@@ -132,14 +132,12 @@ const OnboardingWizard: React.FC = () => {
       setError('Please enter your workplace.');
       return;
     }
-    if (step === 3 && !form.bio) {
-      setError('Please enter your bio.');
-      return;
-    }
+    // Note: bio, profileImageUrl, linkedinUrl, portfolioUrl are optional fields
     if (isLastStep) {
       setLoading(true);
       try {
-        // Build payload for backend - only include non-empty optional fields
+        // Build complete payload for backend - includes all onboarding fields
+        // Backend must be updated to handle proper table mapping (users vs mentees/mentors)
         const payload: any = {
           role: form.role,
           currentRole: form.currentRole,
@@ -147,21 +145,30 @@ const OnboardingWizard: React.FC = () => {
           bio: form.bio,
         };
         
-        // Add optional fields only if they have values
-        if (form.profileImageUrl && form.profileImageUrl.trim()) {
-          payload.profileImageUrl = form.profileImageUrl;
+        // Backend needs to route fields properly:
+        // - role, bio, linkedinUrl, portfolioUrl → users table
+        // - currentRole, workplace → mentees/mentors table
+        
+        // Add optional fields only if they have actual values (not empty strings)
+        // Backend validation rejects empty strings for these fields
+        if (form.profileImageUrl && form.profileImageUrl.trim() && !form.profileImageUrl.startsWith('data:')) {
+          payload.profileImageUrl = form.profileImageUrl.trim();
         }
         if (form.linkedinUrl && form.linkedinUrl.trim()) {
-          payload.linkedinUrl = form.linkedinUrl;
+          payload.linkedinUrl = form.linkedinUrl.trim();
         }
         if (form.portfolioUrl && form.portfolioUrl.trim()) {
-          payload.portfolioUrl = form.portfolioUrl;
+          payload.portfolioUrl = form.portfolioUrl.trim();
         }
+        
+        console.log('Onboarding payload:', payload); // Debug log to verify payload structure
+        
+        // Note: Do not include 'mentee' object or 'password' field as backend rejects them
         
         await apiFetch('/auth/onboarding', {
           method: 'POST',
           body: JSON.stringify(payload),
-        });
+        }, true); // requireAuth = true for protected endpoint
         navigate(form.role.toLowerCase() === 'mentor' ? '/mentor/dashboard' : '/dashboard');
       } catch (err: any) {
         setError(err.message || 'Failed to complete onboarding.');
@@ -191,17 +198,21 @@ const OnboardingWizard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+    <div className="min-h-screen bg-gradient-to-br from-neural-primary/30 via-neural-accent/25 to-neural-secondary/20 p-4 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-neural-primary/10 via-transparent to-neural-accent/10 pointer-events-none"></div>
+      <div className="absolute top-1/3 left-1/5 w-96 h-96 bg-neural-accent/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-1/3 right-1/5 w-80 h-80 bg-neural-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
       {/* Modern Step Indicator */}
-      <div className="max-w-4xl mx-auto mb-8 pt-8">
+      <div className="max-w-4xl mx-auto mb-8 pt-8 relative z-10">
         <div className="flex items-center justify-center mb-6">
           <div className="flex items-center space-x-4">
             {onboardingSteps.map((stepItem, index) => (
               <div key={stepItem.id} className="flex items-center">
                 <div className={`flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300 ${
-                  index < step ? 'bg-indigo-600 border-indigo-600 text-white' :
-                  index === step ? 'bg-white border-indigo-600 text-indigo-600' :
-                  'bg-gray-100 border-gray-300 text-gray-400'
+                  index < step ? 'bg-neural-accent border-neural-accent text-white' :
+                  index === step ? 'bg-white border-neural-accent text-neural-accent' :
+                  'bg-neural-primary/10 border-neural-primary/30 text-neural-primary/50'
                 }`}>
                   {index < step ? (
                     <Check className="w-5 h-5" />
@@ -211,7 +222,7 @@ const OnboardingWizard: React.FC = () => {
                 </div>
                 {index < onboardingSteps.length - 1 && (
                   <div className={`w-12 h-0.5 mx-2 transition-all duration-300 ${
-                    index < step ? 'bg-indigo-600' : 'bg-gray-300'
+                    index < step ? 'bg-neural-accent' : 'bg-neural-primary/20'
                   }`} />
                 )}
               </div>
@@ -219,15 +230,15 @@ const OnboardingWizard: React.FC = () => {
           </div>
         </div>
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Complete Your Profile</h1>
-          <p className="text-gray-600">Step {step + 1} of {onboardingSteps.length}: {onboardingSteps[step].title}</p>
+          <h1 className="text-3xl font-bold text-neural-primary mb-2">Complete Your Profile</h1>
+          <p className="text-neural-primary/70">Step {step + 1} of {onboardingSteps.length}: {onboardingSteps[step].title}</p>
         </div>
       </div>
 
       <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
         {/* Left: Step Form */}
         <div className="flex-1">
-          <Card className="shadow-2xl border-0 bg-white/90 backdrop-blur-sm">
+          <Card className="shadow-neural border-0 bg-gradient-card">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3 mb-4">
                 <div className="p-2 bg-indigo-100 rounded-lg">
@@ -303,6 +314,7 @@ const OnboardingWizard: React.FC = () => {
                       <Camera className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <p className="text-gray-600 font-medium">Click to upload profile picture</p>
                       <p className="text-sm text-gray-500 mt-1">PNG, JPG up to 5MB</p>
+                      <p className="text-xs text-amber-600 mt-2">Note: Image will be used for preview only during onboarding</p>
                     </label>
                   </div>
                   {form.profileImageUrl && (

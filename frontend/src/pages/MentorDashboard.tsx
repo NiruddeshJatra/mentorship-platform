@@ -82,83 +82,88 @@ const MentorDashboard: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-4">
-      <div className="max-w-7xl mx-auto pt-8">
+    <div className="min-h-screen bg-gradient-to-br from-neural-primary/30 via-neural-accent/25 to-neural-secondary/20 p-4 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-neural-primary/10 via-transparent to-neural-accent/10 pointer-events-none"></div>
+      <div className="absolute top-1/3 left-1/5 w-96 h-96 bg-neural-accent/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-1/3 right-1/5 w-80 h-80 bg-neural-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div className="max-w-7xl mx-auto pt-24">
         {/* Welcome Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
-            <Avatar className="w-16 h-16 ring-4 ring-white shadow-lg">
-              <AvatarImage src={user?.profileImageUrl} />
-              <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-500 text-white text-xl font-bold">
+            <Avatar className="w-16 h-16 ring-4 ring-white shadow-neural">
+              <AvatarImage src={user?.profilePicture} />
+              <AvatarFallback className="bg-gradient-cta text-white text-xl font-bold">
                 {user?.name?.charAt(0) || 'U'}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h1 className="text-3xl font-bold text-gray-800">Welcome back, {user?.name}! 🌟</h1>
-              <p className="text-gray-600 mt-1">Ready to inspire and guide your mentees?</p>
+              <h1 className="text-3xl font-bold text-neural-primary">Welcome back, {user?.name}! 🌟</h1>
+              <p className="text-neural-primary/70 mt-1">Ready to inspire and guide your mentees?</p>
             </div>
           </div>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-gradient-card border-0 shadow-neural">
             <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mx-auto mb-2">
-                <Users className="w-6 h-6 text-green-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-neural-accent/20 rounded-full mx-auto mb-2">
+                <Users className="w-6 h-6 text-neural-primary" />
               </div>
-              <div className="text-2xl font-bold text-gray-800">{stats.totalMentees}</div>
-              <div className="text-sm text-gray-600">Total Mentees</div>
+              <div className="text-2xl font-bold text-neural-primary">{stats.totalMentees}</div>
+              <div className="text-sm text-neural-primary/70">Total Mentees</div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-gradient-card border-0 shadow-neural">
             <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mx-auto mb-2">
-                <BookOpen className="w-6 h-6 text-blue-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-neural-growth/20 rounded-full mx-auto mb-2">
+                <BookOpen className="w-6 h-6 text-neural-primary" />
               </div>
-              <div className="text-2xl font-bold text-gray-800">{stats.totalSessions}</div>
-              <div className="text-sm text-gray-600">Total Sessions</div>
+              <div className="text-2xl font-bold text-neural-primary">{stats.totalSessions}</div>
+              <div className="text-sm text-neural-primary/70">Total Sessions</div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-gradient-card border-0 shadow-neural">
             <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mx-auto mb-2">
-                <DollarSign className="w-6 h-6 text-purple-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-neural-secondary/20 rounded-full mx-auto mb-2">
+                <DollarSign className="w-6 h-6 text-neural-primary" />
               </div>
-              <div className="text-2xl font-bold text-gray-800">${stats.monthlyEarnings}</div>
-              <div className="text-sm text-gray-600">This Month</div>
+              <div className="text-2xl font-bold text-neural-primary">${stats.monthlyEarnings}</div>
+              <div className="text-sm text-neural-primary/70">This Month</div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-gradient-card border-0 shadow-neural">
             <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-full mx-auto mb-2">
-                <Star className="w-6 h-6 text-yellow-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-neural-highlight/20 rounded-full mx-auto mb-2">
+                <Star className="w-6 h-6 text-neural-primary" />
               </div>
-              <div className="text-2xl font-bold text-gray-800">{stats.averageRating}</div>
-              <div className="text-sm text-gray-600">Avg Rating</div>
+              <div className="text-2xl font-bold text-neural-primary">{stats.averageRating}</div>
+              <div className="text-sm text-neural-primary/70">Avg Rating</div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-gradient-card border-0 shadow-neural">
             <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full mx-auto mb-2">
-                <Clock className="w-6 h-6 text-orange-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-neural-accent/20 rounded-full mx-auto mb-2">
+                <Clock className="w-6 h-6 text-neural-primary" />
               </div>
-              <div className="text-2xl font-bold text-gray-800">{stats.hoursThisMonth}</div>
-              <div className="text-sm text-gray-600">Hours</div>
+              <div className="text-2xl font-bold text-neural-primary">{stats.hoursThisMonth}</div>
+              <div className="text-sm text-neural-primary/70">Hours</div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-gradient-card border-0 shadow-neural">
             <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-full mx-auto mb-2">
-                <MessageSquare className="w-6 h-6 text-indigo-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-neural-secondary/20 rounded-full mx-auto mb-2">
+                <MessageSquare className="w-6 h-6 text-neural-primary" />
               </div>
-              <div className="text-2xl font-bold text-gray-800">{stats.responseRate}%</div>
-              <div className="text-sm text-gray-600">Response Rate</div>
+              <div className="text-2xl font-bold text-neural-primary">{stats.responseRate}%</div>
+              <div className="text-sm text-neural-primary/70">Response Rate</div>
             </CardContent>
           </Card>
         </div>
@@ -357,7 +362,7 @@ const MentorDashboard: React.FC = () => {
                       <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
                       <span className="text-sm text-gray-700">Response Time</span>
                     </div>
-                    <span className="font-semibold text-gray-800">< 2h</span>
+                    <span className="font-semibold text-gray-800">&lt; 2h</span>
                   </div>
                 </div>
               </CardContent>

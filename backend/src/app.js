@@ -2,6 +2,7 @@ const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 require('dotenv').config(); // Load environment variables
 const { connectDB } = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
@@ -25,11 +26,15 @@ connectDB();
 // Middlewares
 app.use(helmet());
 app.use(express.json());
+app.use(cookieParser());
 app.use(requestLogger); // Use the destructured function
 
 // CORS configuration
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production' ? 'https://your-production-frontend.com' : 'http://localhost:8080',
+  credentials: true, // Allow cookies to be sent
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));

@@ -67,8 +67,13 @@ const MenteeDashboard: React.FC = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-7xl mx-auto pt-8">
+    <div className="min-h-screen bg-gradient-to-br from-neural-primary/30 via-neural-accent/25 to-neural-secondary/20 p-4 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 bg-gradient-to-tr from-neural-primary/10 via-transparent to-neural-accent/10 pointer-events-none"></div>
+      <div className="absolute top-1/3 left-1/5 w-96 h-96 bg-neural-accent/5 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute bottom-1/3 right-1/5 w-80 h-80 bg-neural-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div className="max-w-7xl mx-auto pt-24 relative z-10">
         {/* Welcome Header */}
         <div className="mb-8">
           <div className="flex items-center gap-4 mb-4">
@@ -87,43 +92,43 @@ const MenteeDashboard: React.FC = () => {
 
         {/* Quick Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-gradient-card border-0 shadow-neural">
             <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-full mx-auto mb-2">
-                <BookOpen className="w-6 h-6 text-blue-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-neural-accent/20 rounded-full mx-auto mb-2">
+                <BookOpen className="w-6 h-6 text-neural-primary" />
               </div>
-              <div className="text-2xl font-bold text-gray-800">{stats.totalSessions}</div>
-              <div className="text-sm text-gray-600">Total Sessions</div>
+              <div className="text-2xl font-bold text-neural-primary">{stats.totalSessions}</div>
+              <div className="text-sm text-neural-primary/70">Total Sessions</div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-gradient-card border-0 shadow-neural">
             <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mx-auto mb-2">
-                <Clock className="w-6 h-6 text-green-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-neural-growth/20 rounded-full mx-auto mb-2">
+                <Clock className="w-6 h-6 text-neural-primary" />
               </div>
-              <div className="text-2xl font-bold text-gray-800">{stats.hoursLearned}</div>
-              <div className="text-sm text-gray-600">Hours Learned</div>
+              <div className="text-2xl font-bold text-neural-primary">{stats.hoursLearned}</div>
+              <div className="text-sm text-neural-primary/70">Hours Learned</div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-gradient-card border-0 shadow-neural">
             <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mx-auto mb-2">
-                <Target className="w-6 h-6 text-purple-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-neural-secondary/20 rounded-full mx-auto mb-2">
+                <Target className="w-6 h-6 text-neural-primary" />
               </div>
-              <div className="text-2xl font-bold text-gray-800">{stats.skillsImproved}</div>
-              <div className="text-sm text-gray-600">Skills Improved</div>
+              <div className="text-2xl font-bold text-neural-primary">{stats.skillsImproved}</div>
+              <div className="text-sm text-neural-primary/70">Skills Improved</div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/80 backdrop-blur-sm border-0 shadow-lg">
+          <Card className="bg-gradient-card border-0 shadow-neural">
             <CardContent className="p-4 text-center">
-              <div className="flex items-center justify-center w-12 h-12 bg-orange-100 rounded-full mx-auto mb-2">
-                <TrendingUp className="w-6 h-6 text-orange-600" />
+              <div className="flex items-center justify-center w-12 h-12 bg-neural-highlight/20 rounded-full mx-auto mb-2">
+                <TrendingUp className="w-6 h-6 text-neural-primary" />
               </div>
-              <div className="text-2xl font-bold text-gray-800">{stats.currentStreak}</div>
-              <div className="text-sm text-gray-600">Day Streak</div>
+              <div className="text-2xl font-bold text-neural-primary">{stats.currentStreak}</div>
+              <div className="text-sm text-neural-primary/70">Day Streak</div>
             </CardContent>
           </Card>
         </div>

@@ -135,9 +135,13 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Find user
+    // Find user with mentor/mentee relationships
     const user = await prisma.user.findUnique({
-      where: { email: email?.toLowerCase() }
+      where: { email: email?.toLowerCase() },
+      include: {
+        mentor: true,
+        mentee: true
+      }
     });
 
     if (!user) {
@@ -171,12 +175,19 @@ const login = async (req, res, next) => {
       role: user.role
     });
 
-    // Map enum to string for response
+    // Map enum to string for response and include mentor/mentee data
     const userResponse = {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role === Role.MENTOR ? 'mentor' : 'mentee'
+      role: user.role === Role.MENTOR ? 'mentor' : 'mentee',
+      bio: user.bio,
+      profileImageUrl: user.profileImageUrl,
+      linkedinUrl: user.linkedinUrl,
+      portfolioUrl: user.portfolioUrl,
+      timezone: user.timezone,
+      mentor: user.mentor,
+      mentee: user.mentee
     };
 
     res.json({
@@ -332,22 +343,69 @@ const onboarding = async (req, res, next) => {
       });
     }
 
-    // Update user with onboarding data
-    const updatedUser = await prisma.user.update({
-      where: { id: userId },
-      data: {
-        role: validRole,
-        currentRole,
-        workplace,
-        bio,
-        profileImageUrl: profileImageUrl || null,
-        linkedinUrl: linkedinUrl || null,
-        portfolioUrl: portfolioUrl || null,
-      },
-      include: {
-        mentor: true,
-        mentee: true
+    // Update user and create/update role-specific profile in transaction
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      // Update user with basic profile data
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: {
+          role: validRole,
+          bio,
+          profileImageUrl: profileImageUrl || null,
+          linkedinUrl: linkedinUrl || null,
+          portfolioUrl: portfolioUrl || null,
+        }
+      });
+
+      // Handle role-specific profile creation/update
+      if (validRole === 'MENTOR') {
+        // Delete mentee record if exists (role switch)
+        await tx.mentee.deleteMany({
+          where: { userId }
+        });
+        
+        // Create or update mentor record
+        await tx.mentor.upsert({
+          where: { userId },
+          create: {
+            userId,
+            currentRole,
+            workplace
+          },
+          update: {
+            currentRole,
+            workplace
+          }
+        });
+      } else if (validRole === 'MENTEE') {
+        // Delete mentor record if exists (role switch)
+        await tx.mentor.deleteMany({
+          where: { userId }
+        });
+        
+        // Create or update mentee record
+        await tx.mentee.upsert({
+          where: { userId },
+          create: {
+            userId,
+            currentRole,
+            workplace
+          },
+          update: {
+            currentRole,
+            workplace
+          }
+        });
       }
+
+      // Return updated user with relationships
+      return await tx.user.findUnique({
+        where: { id: userId },
+        include: {
+          mentor: true,
+          mentee: true
+        }
+      });
     });
 
     res.json({
