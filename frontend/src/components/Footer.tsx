@@ -42,14 +42,14 @@ export const Footer: React.FC = () => {
             <h3 className="text-lg font-semibold text-white mb-4">Stay Connected</h3>
             <p className="text-sm mb-4">Get updates on new mentors and platform features.</p>
             <form className="flex">
-              <Input
-                type="email"
-                placeholder="Enter your email"
+                <Input
+                  type="email"
+                  placeholder="Enter your email"
                 className="bg-gray-800 border-gray-700 text-white placeholder-gray-500 rounded-l-md focus:ring-neural-accent focus:border-neural-accent"
-              />
+                />
               <Button type="submit" className="bg-neural-accent text-white rounded-r-md hover:bg-neural-primary">
                 Subscribe
-              </Button>
+                </Button>
             </form>
           </div>
         </div>

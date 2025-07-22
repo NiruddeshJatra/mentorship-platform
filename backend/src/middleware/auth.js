@@ -3,17 +3,19 @@ const { prisma } = require('../config/database');
 
 const authenticateToken = async (req, res, next) => {
   try {
-    const token = extractTokenFromHeader(req.headers.authorization);
-    
+    // Try to get token from Authorization header
+    let token = extractTokenFromHeader(req.headers.authorization);
+    // If not present, try to get from auth_token cookie
+    if (!token && req.cookies && req.cookies.auth_token) {
+      token = req.cookies.auth_token;
+    }
     if (!token) {
       return res.status(401).json({ 
         error: 'Access token required',
         code: 'TOKEN_MISSING' 
       });
     }
-
     const decoded = verifyToken(token);
-    
     // Verify user still exists and is active
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
@@ -25,14 +27,12 @@ const authenticateToken = async (req, res, next) => {
         createdAt: true
       }
     });
-
     if (!user) {
       return res.status(401).json({ 
         error: 'Invalid token',
         code: 'TOKEN_INVALID' 
       });
     }
-
     req.user = user;
     next();
   } catch (error) {
@@ -43,7 +43,6 @@ const authenticateToken = async (req, res, next) => {
         code: 'TOKEN_EXPIRED' 
       });
     }
-    
     return res.status(401).json({ 
       error: 'Invalid token',
       code: 'TOKEN_INVALID' 

@@ -135,9 +135,13 @@ const login = async (req, res, next) => {
       });
     }
 
-    // Find user
+    // Find user with mentor/mentee relationships
     const user = await prisma.user.findUnique({
-      where: { email: email?.toLowerCase() }
+      where: { email: email?.toLowerCase() },
+      include: {
+        mentor: true,
+        mentee: true
+      }
     });
 
     if (!user) {
@@ -171,12 +175,19 @@ const login = async (req, res, next) => {
       role: user.role
     });
 
-    // Map enum to string for response
+    // Map enum to string for response and include mentor/mentee data
     const userResponse = {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role === Role.MENTOR ? 'mentor' : 'mentee'
+      role: user.role === Role.MENTOR ? 'mentor' : 'mentee',
+      bio: user.bio,
+      profileImageUrl: user.profileImageUrl,
+      linkedinUrl: user.linkedinUrl,
+      portfolioUrl: user.portfolioUrl,
+      timezone: user.timezone,
+      mentor: user.mentor,
+      mentee: user.mentee
     };
 
     res.json({
@@ -197,29 +208,9 @@ const getCurrentUser = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
-        mentor: req.user.role === 'mentor' ? {
-          select: {
-            company: true,
-            experience: true,
-            baseHourlyRate: true,
-            bio: true,
-            location: true
-          }
-        } : undefined,
-        mentee: req.user.role === 'mentee' ? {
-          select: {
-            currentRole: true,
-            learningGoals: true,
-            experience: true,
-            availability: true
-          }
-        } : undefined
+      include: {
+        mentee: req.user.role === 'MENTEE' ? true : false,
+        mentor: req.user.role === 'MENTOR' ? true : false
       }
     });
 
@@ -329,6 +320,107 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
+// Onboarding controller
+const onboarding = async (req, res, next) => {
+  try {
+    const { role, currentRole, workplace, bio, profileImageUrl, linkedinUrl, portfolioUrl } = req.body;
+    const userId = req.user.id;
+
+    // Validate required fields
+    if (!role || !currentRole || !workplace || !bio) {
+      return res.status(400).json({
+        error: 'Missing required fields: role, currentRole, workplace, and bio are required',
+        code: 'MISSING_REQUIRED_FIELDS'
+      });
+    }
+
+    // Validate role
+    const validRole = role.toUpperCase();
+    if (!['MENTOR', 'MENTEE'].includes(validRole)) {
+      return res.status(400).json({
+        error: 'Invalid role. Must be either MENTOR or MENTEE',
+        code: 'INVALID_ROLE'
+      });
+    }
+
+    // Update user and create/update role-specific profile in transaction
+    const updatedUser = await prisma.$transaction(async (tx) => {
+      // Update user with basic profile data
+      const user = await tx.user.update({
+        where: { id: userId },
+        data: {
+          role: validRole,
+          bio,
+          profileImageUrl: profileImageUrl || null,
+          linkedinUrl: linkedinUrl || null,
+          portfolioUrl: portfolioUrl || null,
+        }
+      });
+
+      // Handle role-specific profile creation/update
+      if (validRole === 'MENTOR') {
+        // Delete mentee record if exists (role switch)
+        await tx.mentee.deleteMany({
+          where: { userId }
+        });
+        
+        // Create or update mentor record
+        await tx.mentor.upsert({
+          where: { userId },
+          create: {
+            userId,
+            currentRole,
+            workplace
+          },
+          update: {
+            currentRole,
+            workplace
+          }
+        });
+      } else if (validRole === 'MENTEE') {
+        // Delete mentor record if exists (role switch)
+        await tx.mentor.deleteMany({
+          where: { userId }
+        });
+        
+        // Create or update mentee record
+        await tx.mentee.upsert({
+          where: { userId },
+          create: {
+            userId,
+            currentRole,
+            workplace
+          },
+          update: {
+            currentRole,
+            workplace
+          }
+        });
+      }
+
+      // Return updated user with relationships
+      return await tx.user.findUnique({
+        where: { id: userId },
+        include: {
+          mentor: true,
+          mentee: true
+        }
+      });
+    });
+
+    res.json({
+      message: 'Onboarding completed successfully',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Onboarding error:', error);
+    error.statusCode = 500;
+    error.code = 'ONBOARDING_ERROR';
+    error.message = 'Failed to complete onboarding';
+    next(error);
+  }
+};
+
 // Logout controller
 const logout = (req, res) => {
   // If using sessions (Passport), destroy session
@@ -342,5 +434,6 @@ module.exports = {
   login,
   getCurrentUser,
   updateProfile,
+  onboarding,
   logout
 };
