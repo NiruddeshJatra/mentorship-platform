@@ -10,8 +10,8 @@ const comparePassword = async (plainPassword, hashedPassword) => {
 };
 
 const validatePasswordStrength = (password) => {
-  // Strict validation as requested
-  const minLength = 12;
+  // Updated to 8 characters minimum as requested
+  const minLength = 8;
   const hasUpperCase = /[A-Z]/.test(password);
   const hasLowerCase = /[a-z]/.test(password);
   const hasNumber = /\d/.test(password);

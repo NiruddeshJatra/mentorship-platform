@@ -14,10 +14,11 @@ passport.use(new GoogleStrategy({
         data: {
           email: profile.emails[0].value,
           name: profile.displayName,
-          role: 'MENTEE', // or let user choose later
-          passwordHash: 'oauth_user_no_password', // Placeholder for OAuth users
+          role: null, // No default role, will be set in onboarding
+          passwordHash: 'oauth_user_no_password',
         }
       });
+      // Do NOT create mentee or mentor profile yet
     }
     return done(null, user);
   } catch (err) {

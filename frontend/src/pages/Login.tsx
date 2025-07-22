@@ -25,18 +25,56 @@ const LoginPage: React.FC = () => {
     setError(null);
 
     try {
-      const response = await apiFetch<{ token: string }>('/auth/login', {
+      // First try to login
+      const response = await apiFetch<{ token: string; user: any }>('/auth/login', {
         method: 'POST',
         body: JSON.stringify({ email, password }),
       });
+      
       await login(response.token);
-      toast({
-        title: 'Login Successful',
-        description: 'Welcome back!',
-      });
-      navigate('/');
+      
+      // Check if user needs onboarding (missing role, currentRole, or bio)
+      if (!response.user.role || !response.user.currentRole || !response.user.bio) {
+        toast({
+          title: 'Welcome back!',
+          description: 'Let\'s complete your profile.',
+        });
+        navigate('/onboarding');
+      } else {
+        toast({
+          title: 'Login Successful',
+          description: 'Welcome back!',
+        });
+        navigate('/');
+      }
     } catch (err: any) {
-      setError(err.message || 'An unexpected error occurred.');
+      // If login fails due to user not existing, try to register
+      if (err.message?.includes('User not found') || err.message?.includes('Invalid credentials')) {
+        try {
+          // Register new user with default role as mentee (will be changed in onboarding)
+          const registerResponse = await apiFetch<{ token: string; user: any }>('/auth/register', {
+            method: 'POST',
+            body: JSON.stringify({ 
+              email, 
+              password, 
+              name: email.split('@')[0], // Use email prefix as default name
+              role: 'mentee' // Default role, will be updated in onboarding
+            }),
+          });
+          
+          await login(registerResponse.token);
+          
+          toast({
+            title: 'Welcome to Intellectify!',
+            description: 'Let\'s set up your profile.',
+          });
+          navigate('/onboarding');
+        } catch (registerErr: any) {
+          setError(registerErr.message || 'Failed to create account.');
+        }
+      } else {
+        setError(err.message || 'An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
@@ -101,12 +139,6 @@ const LoginPage: React.FC = () => {
             </div>
           </form>
           <div className="mt-6 text-center text-sm">
-            <p className="text-gray-600">
-              Not a member?{' '}
-              <Link to="/register" className="font-semibold text-teal-600 hover:underline">
-                Register now
-              </Link>
-            </p>
             <p className="mt-2">
               <Link to="/" className="text-gray-600 hover:underline">
                 Back to Homepage

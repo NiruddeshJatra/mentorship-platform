@@ -51,6 +51,12 @@ export const Navigation: React.FC = () => {
               >
                 Dashboard
               </Link>
+              <Link
+                to="/profile"
+                className={`font-semibold underline ${logoTextColor} hover:text-neural-accent transition-colors ml-4`}
+              >
+                Profile
+              </Link>
               <Button
                 variant="destructive"
                 onClick={() => {

@@ -22,12 +22,38 @@ const OAuthCallbackPage: React.FC = () => {
       });
       navigate('/login');
     } else if (token) {
-      login(token).then(() => {
-        toast({
-          title: 'Login Successful',
-          description: 'Welcome!',
-        });
-        navigate('/');
+      login(token).then(async () => {
+        try {
+          // Get user info to check if onboarding is needed
+          const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/auth/me`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          const userData = await response.json();
+          
+          // Check if user needs onboarding (missing role, currentRole, or bio)
+          if (!userData.user?.role || !userData.user?.currentRole || !userData.user?.bio) {
+            toast({
+              title: 'Welcome to Intellectify!',
+              description: 'Let\'s complete your profile.',
+            });
+            navigate('/onboarding');
+          } else {
+            toast({
+              title: 'Login Successful',
+              description: 'Welcome back!',
+            });
+            navigate('/');
+          }
+        } catch (err) {
+          // If we can't get user info, just redirect to onboarding to be safe
+          toast({
+            title: 'Welcome to Intellectify!',
+            description: 'Let\'s set up your profile.',
+          });
+          navigate('/onboarding');
+        }
       });
     } else {
       toast({

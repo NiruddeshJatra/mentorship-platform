@@ -8,7 +8,7 @@ const isValidEmail = (email) => {
 // Custom validator for password strength
 const passwordValidator = (value, helpers) => {
   if (value.length < 8) {
-    return helpers.message('Password must be at least 12 characters', { code: 'WEAK_PASSWORD' });
+    return helpers.message('Password must be at least 8 characters', { code: 'WEAK_PASSWORD' });
   }
   if (!/[a-z]/.test(value)) {
     return helpers.message('Password must contain at least one lowercase letter', { code: 'WEAK_PASSWORD' });
@@ -60,7 +60,8 @@ const updateProfileSchema = Joi.object({
 
 // Mentor schemas
 const mentorProfileSchema = Joi.object({
-  company: Joi.string().min(2).max(100).optional(),
+  currentRole: Joi.string().min(2).max(100).required(),
+  workplace: Joi.string().min(2).max(100).required(),
   experienceYears: Joi.number().integer().min(0).max(50).optional(),
   hourlyRate: Joi.number().min(0).max(10000).optional(),
   bio: Joi.string().max(1000).optional(),
@@ -95,8 +96,8 @@ const availabilitySlotSchema = Joi.object({
 
 // Mentee schemas
 const menteeProfileSchema = Joi.object({
-  currentRole: Joi.string().min(2).max(100).optional(),
-  learningGoals: Joi.string().max(1000).optional(),
+  currentRole: Joi.string().min(2).max(100).required(),
+  workplace: Joi.string().min(2).max(100).required(),
   bio: Joi.string().max(1000).optional(),
   profileImageUrl: Joi.string().uri().optional(),
   linkedinUrl: Joi.string().uri().optional(),

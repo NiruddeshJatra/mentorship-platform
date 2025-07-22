@@ -20,7 +20,7 @@ const completeProfile = async (req, res, next) => {
     // Update both user and mentee tables in transaction
     const updatedMentee = await prisma.$transaction(async (tx) => {
       // Update user fields
-      const { currentRole, learningGoals, ...userFields } = profileData;
+      const { currentRole, workplace, ...userFields } = profileData;
       if (Object.keys(userFields).length > 0) {
         await tx.user.update({
           where: { id: userId },
@@ -30,7 +30,7 @@ const completeProfile = async (req, res, next) => {
       // Update mentee-specific fields
       const menteeUpdateData = {};
       if (currentRole !== undefined) menteeUpdateData.currentRole = currentRole;
-      if (learningGoals !== undefined) menteeUpdateData.learningGoals = learningGoals;
+      if (workplace !== undefined) menteeUpdateData.workplace = workplace;
       if (Object.keys(menteeUpdateData).length > 0) {
         await tx.mentee.update({
           where: { userId },
@@ -65,7 +65,7 @@ const updateProfile = async (req, res, next) => {
     const profileData = req.body;
     const updatedMentee = await prisma.$transaction(async (tx) => {
       // Update user fields
-      const { currentRole, learningGoals, ...userFields } = profileData;
+      const { currentRole, workplace, ...userFields } = profileData;
       if (Object.keys(userFields).length > 0) {
         await tx.user.update({
           where: { id: userId },
@@ -75,7 +75,7 @@ const updateProfile = async (req, res, next) => {
       // Update mentee-specific fields
       const menteeUpdateData = {};
       if (currentRole !== undefined) menteeUpdateData.currentRole = currentRole;
-      if (learningGoals !== undefined) menteeUpdateData.learningGoals = learningGoals;
+      if (workplace !== undefined) menteeUpdateData.workplace = workplace;
       if (Object.keys(menteeUpdateData).length > 0) {
         await tx.mentee.update({
           where: { userId },

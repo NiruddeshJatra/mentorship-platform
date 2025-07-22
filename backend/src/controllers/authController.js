@@ -197,29 +197,9 @@ const getCurrentUser = async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
-        mentor: req.user.role === 'mentor' ? {
-          select: {
-            company: true,
-            experience: true,
-            baseHourlyRate: true,
-            bio: true,
-            location: true
-          }
-        } : undefined,
-        mentee: req.user.role === 'mentee' ? {
-          select: {
-            currentRole: true,
-            learningGoals: true,
-            experience: true,
-            availability: true
-          }
-        } : undefined
+      include: {
+        mentee: req.user.role === 'MENTEE' ? true : false,
+        mentor: req.user.role === 'MENTOR' ? true : false
       }
     });
 
@@ -329,6 +309,60 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
+// Onboarding controller
+const onboarding = async (req, res, next) => {
+  try {
+    const { role, currentRole, workplace, bio, profileImageUrl, linkedinUrl, portfolioUrl } = req.body;
+    const userId = req.user.id;
+
+    // Validate required fields
+    if (!role || !currentRole || !workplace || !bio) {
+      return res.status(400).json({
+        error: 'Missing required fields: role, currentRole, workplace, and bio are required',
+        code: 'MISSING_REQUIRED_FIELDS'
+      });
+    }
+
+    // Validate role
+    const validRole = role.toUpperCase();
+    if (!['MENTOR', 'MENTEE'].includes(validRole)) {
+      return res.status(400).json({
+        error: 'Invalid role. Must be either MENTOR or MENTEE',
+        code: 'INVALID_ROLE'
+      });
+    }
+
+    // Update user with onboarding data
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        role: validRole,
+        currentRole,
+        workplace,
+        bio,
+        profileImageUrl: profileImageUrl || null,
+        linkedinUrl: linkedinUrl || null,
+        portfolioUrl: portfolioUrl || null,
+      },
+      include: {
+        mentor: true,
+        mentee: true
+      }
+    });
+
+    res.json({
+      message: 'Onboarding completed successfully',
+      user: updatedUser
+    });
+  } catch (error) {
+    console.error('Onboarding error:', error);
+    error.statusCode = 500;
+    error.code = 'ONBOARDING_ERROR';
+    error.message = 'Failed to complete onboarding';
+    next(error);
+  }
+};
+
 // Logout controller
 const logout = (req, res) => {
   // If using sessions (Passport), destroy session
@@ -342,5 +376,6 @@ module.exports = {
   login,
   getCurrentUser,
   updateProfile,
+  onboarding,
   logout
 };
