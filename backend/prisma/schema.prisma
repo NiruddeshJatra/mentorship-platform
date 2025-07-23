@@ -34,7 +34,6 @@ model Mentor {
   userId         String   @unique @map("user_id")
   currentRole     String?  @map("current_role")
   workplace       String?  @map("workplace")
-  experienceYears Int?    @map("experience_years")
   hourlyRate      Decimal? @map("hourly_rate") @db.Decimal(10, 2)
   averageRating  Decimal  @default(0) @map("average_rating") @db.Decimal(3, 2)
   totalReviews   Int      @default(0) @map("total_reviews")
