@@ -20,8 +20,10 @@ const corsOptions = {
     const allowedOrigins = [
       'http://localhost:8080',
       'http://localhost:3000',
+      'http://localhost:5173',
+      'https://intellectify-frontend.onrender.com',
       FRONTEND_URL
-    ];
+    ].filter(Boolean); // Remove any falsy values
     
     if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
       callback(null, true);
