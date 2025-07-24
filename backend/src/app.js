@@ -3,6 +3,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
 require('dotenv').config(); // Load environment variables
 const { connectDB } = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
@@ -23,20 +24,60 @@ const app = express();
 // Connect to database
 connectDB();
 
+// Trust first proxy in production (important for secure cookies)
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1); // trust first proxy
+}
+
+// Session configuration
+const sessionConfig = {
+  secret: process.env.SESSION_SECRET || 'your-secret-key', // Use environment variable in production
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // Use secure cookies in production (requires HTTPS)
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Required for cross-site cookies
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+};
+
 // Middlewares
 app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
+app.use(session(sessionConfig));
 app.use(requestLogger); // Use the destructured function
 
 // CORS configuration
+const allowedOrigins = [
+  'http://localhost:8080',
+  'http://localhost:3000',
+  'https://mentorship-platform-smoky.vercel.app',
+  'https://mentorship-platform.vercel.app' // Add your custom domain if you have one
+];
+
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' ? 'https://your-production-frontend.com' : 'http://localhost:8080',
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
   credentials: true, // Allow cookies to be sent
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  optionsSuccessStatus: 200,
+  preflightContinue: false,
+  maxAge: 86400 // 24 hours
 };
+
+// Enable CORS pre-flight
+app.options('*', cors(corsOptions));
 app.use(cors(corsOptions));
 
 // Rate limiting

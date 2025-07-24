@@ -63,15 +63,42 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionStorage.setItem('authLogs', JSON.stringify(logs));
   };
 
+  // Check if we're coming back from OAuth
+  const checkOAuthCallback = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    
+    if (token) {
+      log('OAuth callback detected with token');
+      // Store the token and remove it from URL
+      localStorage.setItem('token', token);
+      window.history.replaceState({}, document.title, window.location.pathname);
+      return true;
+    }
+    return false;
+  };
+
   useEffect(() => {
     const loadUser = async () => {
       log('loadUser: Attempting to fetch user data with credentials');
+      
+      // Check for OAuth callback first
+      const isOAuthCallback = checkOAuthCallback();
+      
       try {
-        // Use the enhanced apiFetch with credentials included
+        // Add a small delay after OAuth callback to ensure cookies are set
+        if (isOAuthCallback) {
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+
         const data = await apiFetch<{ user: User }>('/auth/me', { 
           method: 'GET',
-          cache: 'no-store' // Prevent caching of auth state
-        }, true);
+          cache: 'no-store',
+          credentials: 'include',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         
         log('loadUser: User data received', { 
           id: data.user?.id,
@@ -86,6 +113,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           error: error.message,
           status: error.status
         });
+        
+        // If we're coming from OAuth and got an error, try one more time after a delay
+        if (isOAuthCallback) {
+          log('Retrying user load after OAuth callback...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          try {
+            const retryData = await apiFetch<{ user: User }>('/auth/me');
+            setUser(retryData.user);
+            return;
+          } catch (retryError) {
+            log('Retry failed:', { error: retryError.message });
+          }
+        }
+        
         // Don't logout on first load to prevent flash of login page
         if (user) {
           logout();

@@ -1,10 +1,6 @@
-// src/lib/api.ts
-// API utility for fetch requests with base URL, error handling, and token support
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  import.meta.env.PROD 
-    ? 'https://intellectify-backend.onrender.com/api' 
-    : 'http://localhost:5000/api';
+const API_BASE_URL = process.env.NODE_ENV === 'production' 
+  ? 'https://mentorship-platform-tscc.onrender.com/api' 
+  : 'http://localhost:5000/api';
 
 // Helper to handle API responses
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -36,13 +32,22 @@ export async function apiFetch<T>(
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  // Include credentials for all requests
+  // Ensure credentials are included for all requests
   const fetchOptions: RequestInit = {
     ...options,
-    headers,
-    credentials: 'include' as RequestCredentials, // This is crucial for cookies
-    mode: 'cors' // Explicitly enable CORS
+    headers: {
+      ...headers,
+      ...(options.headers || {})
+    },
+    credentials: 'include' as const, // Always include credentials for CORS
+    mode: 'cors', // Explicitly enable CORS
+    cache: 'no-store' // Prevent caching of auth-related requests
   };
+
+  // For non-GET requests, ensure body is properly stringified
+  if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
+    fetchOptions.body = JSON.stringify(options.body);
+  }
 
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, fetchOptions);

@@ -36,7 +36,8 @@ const handleOAuthSuccess = async (req, res) => {
 
     if (!user) {
       console.error('OAuth error: User not found after authentication');
-      return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:8080'}/login?error=user_not_found`);
+      const frontendBase = getFrontendUrl();
+      return res.redirect(`${frontendBase}/login?error=user_not_found`);
     }
 
     // Generate JWT token for the user
@@ -49,7 +50,7 @@ const handleOAuthSuccess = async (req, res) => {
     const roleData = user.role === 'MENTOR' ? user.mentor : user.mentee;
     const needsOnboarding = !user.role || !roleData?.currentRole || !roleData?.workplace;
     
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+    const frontendBase = getFrontendUrl();
     
     // Set secure HTTP-only cookie with token
     res.cookie('auth_token', token, {
@@ -58,45 +59,83 @@ const handleOAuthSuccess = async (req, res) => {
       sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       path: '/',
-      domain: process.env.NODE_ENV === 'production' ? new URL(frontendUrl).hostname : 'localhost'
+      domain: process.env.NODE_ENV === 'production' ? new URL(frontendBase).hostname : 'localhost'
     });
 
-    console.log(`OAuth success for user ${user.id}, needs onboarding: ${needsOnboarding}`);
+    console.log('=== OAuth Success ===');
+    console.log(`User ID: ${user.id}`);
+    console.log(`Needs Onboarding: ${needsOnboarding}`);
+    console.log(`Frontend Base: ${frontendBase}`);
     
     if (needsOnboarding) {
-      const onboardingUrl = `${frontendUrl}/onboarding`;
-      console.log(`Redirecting to onboarding: ${onboardingUrl}`);
-      return res.redirect(onboardingUrl);
+      // Ensure we don't have double slashes in the URL
+      const base = frontendBase.endsWith('/') ? frontendBase.slice(0, -1) : frontendBase;
+      
+      // Generate JWT token with just the essential user data
+      // The generateToken function will handle the issuer and audience
+      const token = generateToken({ 
+        userId: user.id,
+        role: user.role
+      });
+      
+      // Include token in the redirect URL
+      const onboardingUrl = new URL(`${base}/onboarding`);
+      onboardingUrl.searchParams.append('token', token);
+      
+      console.log('=== Redirecting to Onboarding ===');
+      console.log(`Base URL: ${base}`);
+      console.log(`Full Onboarding URL: ${onboardingUrl.toString()}`);
+      console.log('Response Headers:', JSON.stringify(res.getHeaders(), null, 2));
+      
+      return res.redirect(302, onboardingUrl.toString());
     } else {
       const dashboardPath = user.role?.toUpperCase() === 'MENTOR' ? '/mentor/dashboard' : '/dashboard';
-      const dashboardUrl = `${frontendUrl}${dashboardPath}`;
+      // Ensure we don't have double slashes in the URL
+      const base = frontendBase.endsWith('/') ? frontendBase.slice(0, -1) : frontendBase;
+      const dashboardUrl = `${base}${dashboardPath}`;
       console.log(`Redirecting to dashboard: ${dashboardUrl}`);
-      return res.redirect(dashboardUrl);
+      return res.redirect(302, dashboardUrl);
     }
   } catch (error) {
     console.error('Error in OAuth success handler:', error);
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
-    return res.redirect(`${frontendUrl}/login?error=oauth_error`);
+    const frontendBase = getFrontendUrl();
+    return res.redirect(`${frontendBase}/login?error=oauth_error`);
   }
+};
+
+// Helper function to clean URLs by removing trailing slashes
+const cleanUrl = (url) => url.endsWith('/') ? url.slice(0, -1) : url;
+
+// Helper function to get frontend URL with consistent formatting
+const getFrontendUrl = () => {
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
+  return cleanUrl(frontendUrl);
 };
 
 router.get('/google/callback',
   async (req, res, next) => {
     try {
+      console.log('=== OAuth Callback Started ===');
+      console.log('Request URL:', req.originalUrl);
+      console.log('Request Headers:', JSON.stringify(req.headers, null, 2));
+      
       // Set CORS headers for the OAuth callback
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
-      res.setHeader('Access-Control-Allow-Origin', frontendUrl);
+      const frontendBase = getFrontendUrl();
+      console.log('Frontend Base URL:', frontendBase);
+      
+      res.setHeader('Access-Control-Allow-Origin', frontendBase);
       res.setHeader('Access-Control-Allow-Credentials', 'true');
       
       // Call the authentication middleware
+      console.log('Starting Passport authentication...');
       passport.authenticate('google', { 
-        failureRedirect: `${frontendUrl}/login?error=authentication_failed`,
+        failureRedirect: `${frontendBase}/login?error=authentication_failed`,
         session: false 
       })(req, res, next);
     } catch (error) {
       console.error('OAuth callback error:', error);
-      const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:8080';
-      const errorUrl = `${frontendUrl}/login?error=oauth_error`;
+      const frontendBase = getFrontendUrl();
+      const errorUrl = `${frontendBase}/login?error=oauth_error`;
       console.log(`Redirecting to error page: ${errorUrl}`);
       return res.redirect(errorUrl);
     }

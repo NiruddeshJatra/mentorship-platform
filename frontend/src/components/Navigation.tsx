@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Zap, Calendar, User } from 'lucide-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
