@@ -164,7 +164,7 @@ const LoginPage: React.FC = () => {
       <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-neural-secondary/5 rounded-full blur-3xl pointer-events-none"></div>
       <div className="flex flex-col items-center mb-8 relative z-10">
         <Zap className="w-10 h-10 text-neural-primary mb-2" />
-        <h1 className="text-2xl font-bold text-neural-primary">Welcome back to Intellectify</h1>
+        <h1 className="text-2xl font-bold text-neural-primary">Welcome to Intellectify</h1>
       </div>
       <Card className="mx-auto max-w-sm w-full bg-white/95 backdrop-blur-sm shadow-2xl border-0 rounded-2xl relative z-10">
         <CardContent className="pt-6">
@@ -219,12 +219,6 @@ const LoginPage: React.FC = () => {
             </div>
           </form>
           <div className="mt-6 text-center text-sm">
-            <p className="text-gray-600">
-              Not a member?{' '}
-              <Link to="/register" className="font-semibold text-teal-600 hover:underline">
-                Register now
-              </Link>
-            </p>
             <p className="mt-2">
               <Link to="/" className="text-gray-600 hover:underline">
                 Back to Homepage
