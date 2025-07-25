@@ -26,36 +26,21 @@ export async function apiFetch<T>(
     ...(options.headers || {})
   };
 
-  // Add auth token if present (always, for all requests)
-  const token = localStorage.getItem('token');
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
-  // Ensure credentials are included for all requests
+  // For non-GET requests, ensure body is properly stringified
   const fetchOptions: RequestInit = {
     ...options,
-    headers: {
-      ...headers,
-      ...(options.headers || {})
-    },
+    headers,
     credentials: 'include' as const, // Always include credentials for CORS
     mode: 'cors', // Explicitly enable CORS
     cache: 'no-store' // Prevent caching of auth-related requests
   };
 
-  // For non-GET requests, ensure body is properly stringified
   if (options.body && typeof options.body === 'object' && !(options.body instanceof FormData)) {
     fetchOptions.body = JSON.stringify(options.body);
   }
 
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, fetchOptions);
-    return await handleResponse<T>(response);
-  } catch (error) {
-    console.error('API request failed:', error);
-    throw error;
-  }
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, fetchOptions);
+  return handleResponse<T>(response);
 }
 
 // Add a separate function for OAuth requests that need special handling
