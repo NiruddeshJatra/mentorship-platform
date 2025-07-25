@@ -49,9 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  
-  // No longer using token from localStorage, but keeping for backward compatibility
-  const token = null;
+  const [token, setToken] = useState<string | null>(null);
 
   // Store logs in session storage
   const log = (message: string, data?: any) => {
@@ -67,12 +65,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkOAuthCallback = () => {
     const urlParams = new URLSearchParams(window.location.search);
     const token = urlParams.get('token');
+    const oauth = urlParams.get('oauth');
     
     if (token) {
       log('OAuth callback detected with token');
       // Store the token and remove it from URL
       localStorage.setItem('token', token);
+      setToken(token);
       window.history.replaceState({}, document.title, window.location.pathname);
+      return true;
+    } else if (oauth === 'true') {
+      log('OAuth callback detected (cookie-based)');
       return true;
     }
     return false;
@@ -88,13 +91,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         // Add a small delay after OAuth callback to ensure cookies are set
         if (isOAuthCallback) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+          log('loadUser: OAuth callback detected, waiting for cookies...');
+          await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
+        log('loadUser: Fetching user data from /auth/me');
         const data = await apiFetch<{ user: User }>('/auth/me', { 
           method: 'GET',
           cache: 'no-store',
-          credentials: 'include',
+          credentials: 'include' as const,
           headers: {
             'Content-Type': 'application/json',
           },
@@ -139,40 +144,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     loadUser();
   }, []);
 
-  const login = async (credentials?: { email: string; password: string }): Promise<User | null> => {
-    log('login() called', { hasCredentials: !!credentials });
-    setLoading(true);
+  const login = async (credentials?: { email: string; password: string }) => {
+    log('login: Attempting login', { hasCredentials: !!credentials });
+    
     try {
-      let token: string | null = null;
-      // For standard login, make the login request and store the token
+      let userData;
+      
       if (credentials) {
-        log('Performing standard login with credentials');
-        const loginResp = await apiFetch<{ user: User; token: string }>('/auth/login', {
-          method: 'POST',
-          body: JSON.stringify(credentials)
-        }, false);
-        token = loginResp.token;
-        if (token) {
-          localStorage.setItem('token', token);
+        // Standard login with email/password
+        const response = await apiFetch<{ user: User; token: string }>(
+          '/auth/login',
+          {
+            method: 'POST',
+            body: JSON.stringify(credentials),
+            credentials: 'include' as const,
+          },
+          false
+        );
+        
+        userData = response;
+        
+        // Store the token if it exists (for backward compatibility)
+        if (response.token) {
+          localStorage.setItem('token', response.token);
+          setToken(response.token);
+        }
+      } else {
+        // OAuth login - just get the current user
+        try {
+          userData = await apiFetch<{ user: User }>(
+            '/auth/me',
+            { 
+              method: 'GET',
+              credentials: 'include' as const,
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              cache: 'no-store',
+            },
+            true
+          );
+        } catch (error) {
+          console.error('Failed to fetch user after OAuth:', error);
+          throw new Error('Failed to complete OAuth login. Please try again.');
         }
       }
-      // Fetch user data using the token
-      log('Fetching user data from /auth/me');
-      const data = await apiFetch<{ user: User }>('/auth/me', {
-        method: 'GET',
-        cache: 'no-store'
-      }, true);
-      log('User data received', {
-        id: data.user?.id,
-        role: data.user?.role,
-        hasMentor: !!data.user?.mentor,
-        hasMentee: !!data.user?.mentee
-      });
-      setUser(data.user);
+      
+      log('login: Login successful', { user: userData.user });
+      
       // Handle redirection based on onboarding status
-      const role = data.user.role?.toUpperCase();
-      const roleData = role === 'MENTOR' ? data.user.mentor : data.user.mentee;
+      const role = userData.user.role?.toUpperCase();
+      const roleData = role === 'MENTOR' ? userData.user.mentor : userData.user.mentee;
       const needsOnboarding = !role || !roleData?.currentRole || !roleData?.workplace;
+      
       log('Onboarding check', {
         role,
         hasRole: !!role,
@@ -180,7 +204,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         hasWorkplace: !!roleData?.workplace,
         needsOnboarding
       });
-      return data.user;
+      
+      setUser(userData.user);
+      return userData.user;
     } catch (error) {
       log('Login failed', {
         error: error.message,
