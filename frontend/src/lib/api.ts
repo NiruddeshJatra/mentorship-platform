@@ -1,6 +1,6 @@
 const API_BASE_URL = process.env.NODE_ENV === 'production' 
   ? 'https://mentorship-platform-tscc.onrender.com/api' 
-  : 'http://localhost:5000/api';
+  : 'http://localhost:3000/api';
 
 // Helper to handle API responses
 async function handleResponse<T>(response: Response): Promise<T> {

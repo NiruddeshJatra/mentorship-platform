@@ -53,14 +53,25 @@ const handleOAuthSuccess = async (req, res) => {
     const frontendBase = getFrontendUrl();
     
     // Set secure HTTP-only cookie with token
-    res.cookie('auth_token', token, {
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'lax' : 'lax',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       path: '/',
-      domain: process.env.NODE_ENV === 'production' ? new URL(frontendBase).hostname : 'localhost'
-    });
+      domain: process.env.NODE_ENV === 'production' 
+        ? new URL(frontendBase).hostname.replace('www.', '') // Remove www. if present
+        : 'localhost'
+    };
+    
+    // In production, we need to explicitly set the domain without port
+    if (process.env.NODE_ENV === 'production') {
+      const domain = new URL(frontendBase).hostname;
+      cookieOptions.domain = domain.startsWith('www.') ? domain.substring(4) : domain;
+    }
+    
+    console.log('Setting auth cookie with options:', JSON.stringify(cookieOptions, null, 2));
+    res.cookie('auth_token', token, cookieOptions);
 
     console.log('=== OAuth Success ===');
     console.log(`User ID: ${user.id}`);

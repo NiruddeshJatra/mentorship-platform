@@ -54,31 +54,39 @@ const allowedOrigins = [
   'http://localhost:8080',
   'http://localhost:3000',
   'https://mentorship-platform-smoky.vercel.app',
-  'https://mentorship-platform.vercel.app' // Add your custom domain if you have one
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
+    // In development or if no origin, allow the request
+    if (process.env.NODE_ENV !== 'production' || !origin) {
+      return callback(null, true);
     }
-    return callback(null, true);
+    
+    // Check if the origin is allowed
+    if (allowedOrigins.some(allowedOrigin => 
+      origin === allowedOrigin || 
+      origin.startsWith(`https://${allowedOrigin.replace(/^https?:\/\//, '')}`) ||
+      origin.endsWith('.vercel.app')
+    )) {
+      return callback(null, true);
+    }
+    
+    const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+    return callback(new Error(msg), false);
   },
   credentials: true, // Allow cookies to be sent
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  optionsSuccessStatus: 200,
+  exposedHeaders: ['Set-Cookie'],
+  optionsSuccessStatus: 204,
   preflightContinue: false,
   maxAge: 86400 // 24 hours
 };
 
-// Enable CORS pre-flight
-app.options('*', cors(corsOptions));
+// Apply CORS with the above options
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // Rate limiting
 if (process.env.NODE_ENV !== 'test') {
